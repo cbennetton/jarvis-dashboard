@@ -1,0 +1,10 @@
+node_modules/
+*.pem
+*.log
+.env
+api-key.txt
+data.json
+chats.json
+pending-chats.json
+package-lock.json
+server.log
