@@ -126,21 +126,26 @@
 
     .main-content { padding: 24px; max-width: 1400px; margin: 0 auto; }
 
-    .status-card {
+    /* Combined Status + Activity Card */
+    .status-activity-card {
       background: var(--bg-card);
       backdrop-filter: blur(20px);
       border: 1px solid var(--border);
       border-radius: 24px;
-      padding: 32px;
+      padding: 28px;
       margin-bottom: 24px;
+    }
+
+    .status-activity-top {
       display: flex;
       align-items: center;
       gap: 24px;
+      margin-bottom: 20px;
     }
 
     .status-indicator {
-      width: 80px;
-      height: 80px;
+      width: 70px;
+      height: 70px;
       border-radius: 50%;
       display: flex;
       align-items: center;
@@ -159,11 +164,43 @@
       50% { transform: scale(1.05); opacity: 0.8; }
     }
 
-    .status-icon { font-size: 36px; }
-    .status-info { flex: 1; }
-    .status-label { font-size: 14px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
-    .status-task { font-size: 24px; font-weight: 600; margin-bottom: 4px; }
-    .status-time { color: var(--text-secondary); font-size: 14px; }
+    .status-icon { font-size: 32px; }
+    .status-info { flex: 1; min-width: 0; }
+    .status-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+    .status-task { font-size: 20px; font-weight: 600; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .status-time { color: var(--text-secondary); font-size: 13px; }
+
+    .status-activity-chart {
+      height: 120px;
+      position: relative;
+      margin-bottom: 16px;
+    }
+
+    .status-activity-stats {
+      display: flex;
+      justify-content: space-around;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    .mini-stat {
+      text-align: center;
+    }
+    .mini-stat-value {
+      font-size: 20px;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent), #3b82f6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .mini-stat-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+    }
 
     .repos-card { background:var(--bg-card); border:1px solid var(--border); border-radius:16px; padding:20px; margin-bottom:24px; }
     .repos-title { font-size:16px; font-weight:600; margin-bottom:16px; }
@@ -173,40 +210,6 @@
     .repo-item.active { border:1px solid var(--accent); }
     .repo-name { font-weight:500; }
     .repo-desc { font-size:12px; color:var(--text-muted); }
-
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-      margin-bottom: 24px;
-    }
-
-    .stat-card {
-      background: var(--bg-card);
-      backdrop-filter: blur(20px);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 24px;
-      text-align: center;
-    }
-
-    .stat-value {
-      font-size: 32px;
-      font-weight: 700;
-      background: linear-gradient(135deg, var(--accent), #3b82f6);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    .stat-label { font-size: 14px; color: var(--text-secondary); margin-top: 4px; }
-
-    .charts-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-      gap: 24px;
-      margin-bottom: 24px;
-    }
-    @media (max-width: 500px) { .charts-grid { grid-template-columns: 1fr; } }
 
     .chart-card, .calendar-card, .activity-card {
       background: var(--bg-card);
@@ -514,15 +517,38 @@
     </header>
 
     <main class="main-content">
-      <!-- Status Card -->
-      <div class="status-card">
-        <div class="status-indicator" id="statusIndicator">
-          <span class="status-icon" id="statusIcon">💤</span>
+      <!-- Combined Status + Activity Card -->
+      <div class="status-activity-card">
+        <div class="status-activity-top">
+          <div class="status-indicator" id="statusIndicator">
+            <span class="status-icon" id="statusIcon">💤</span>
+          </div>
+          <div class="status-info">
+            <div class="status-label">Current Status</div>
+            <div class="status-task" id="statusTask">Idle</div>
+            <div class="status-time" id="statusTime">No active tasks</div>
+          </div>
         </div>
-        <div class="status-info">
-          <div class="status-label">Current Status</div>
-          <div class="status-task" id="statusTask">Idle</div>
-          <div class="status-time" id="statusTime">No active tasks</div>
+        <div class="status-activity-chart">
+          <canvas id="hourlyChart"></canvas>
+        </div>
+        <div class="status-activity-stats">
+          <div class="mini-stat">
+            <div class="mini-stat-value" id="statToday">0</div>
+            <div class="mini-stat-label">Tasks Today</div>
+          </div>
+          <div class="mini-stat">
+            <div class="mini-stat-value" id="statHours">0h</div>
+            <div class="mini-stat-label">Active (24h)</div>
+          </div>
+          <div class="mini-stat">
+            <div class="mini-stat-value" id="statTotal">0</div>
+            <div class="mini-stat-label">Total Tasks</div>
+          </div>
+          <div class="mini-stat">
+            <div class="mini-stat-value" id="statTotalHours">0h</div>
+            <div class="mini-stat-label">Total Time</div>
+          </div>
         </div>
       </div>
 
@@ -532,36 +558,10 @@
         <div class="repos-list" id="reposList"></div>
       </div>
 
-      <!-- Stats Grid -->
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-value" id="statToday">0</div>
-          <div class="stat-label">Tasks Today</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value" id="statHours">0h</div>
-          <div class="stat-label">Active Time (24h)</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value" id="statTotal">0</div>
-          <div class="stat-label">Total Tasks</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value" id="statTotalHours">0h</div>
-          <div class="stat-label">Total Active Time</div>
-        </div>
-      </div>
-
-      <!-- Charts -->
-      <div class="charts-grid">
-        <div class="chart-card">
-          <div class="chart-title">📊 Activity (Last 24 Hours)</div>
-          <div class="chart-container"><canvas id="hourlyChart"></canvas></div>
-        </div>
-        <div class="chart-card">
-          <div class="chart-title">📈 Weekly Overview</div>
-          <div class="chart-container"><canvas id="dailyChart"></canvas></div>
-        </div>
+      <!-- Weekly Chart -->
+      <div class="chart-card" style="margin-bottom: 24px;">
+        <div class="chart-title">📈 Weekly Overview</div>
+        <div class="chart-container"><canvas id="dailyChart"></canvas></div>
       </div>
 
       <!-- Calendar -->
