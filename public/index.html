@@ -418,28 +418,30 @@
       .login-card { padding: 32px 24px; }
       .header { padding: 16px; }
       .main-content { padding: 12px; }
-      .calendar-header { flex-direction: column; gap: 12px; align-items: flex-start; }
-      .calendar-header > div { width: 100%; justify-content: space-between; }
-      .calendar-day { min-height: 45px; padding: 4px; aspect-ratio: auto; }
-      .calendar-day-number { font-size: 11px; }
-      .calendar-activity-text { font-size: 9px; padding: 1px 3px; }
-      .calendar-activity-count { font-size: 8px; }
-      .calendar-weekday { font-size: 10px; padding: 4px 2px; }
+      .calendar-header { flex-direction: column; gap: 12px; align-items: stretch; }
+      .calendar-header > div { width: 100%; justify-content: space-between; display: flex; }
+      .calendar-grid { gap: 6px; }
+      .calendar-day { min-height: 70px; padding: 8px; aspect-ratio: auto; touch-action: manipulation; cursor: pointer; }
+      .calendar-day-number { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+      .calendar-activity-text { font-size: 10px; padding: 3px 5px; margin-bottom: 2px; }
+      .calendar-activity-count { font-size: 11px; font-weight: 600; }
+      .calendar-weekday { font-size: 12px; padding: 8px 4px; font-weight: 600; }
       .calendar-toggle { flex-shrink: 0; }
-      .view-btn { padding: 5px 10px; font-size: 12px; }
-      .calendar-nav button { padding: 6px 10px; }
-      .calendar-month { font-size: 14px; }
+      .view-btn { padding: 8px 14px; font-size: 13px; }
+      .calendar-nav button { padding: 10px 14px; font-size: 16px; }
+      .calendar-month { font-size: 15px; }
       .charts-grid { grid-template-columns: 1fr; }
       .stats-grid { grid-template-columns: repeat(2, 1fr); }
       .stat-card { padding: 16px; }
       .stat-value { font-size: 24px; }
+      .tooltip { max-width: 280px; left: 10px !important; right: 10px; }
     }
     
     @media (max-width: 400px) {
-      .calendar-activity-text { display: none; }
-      .calendar-day-activities { flex-direction: row; flex-wrap: wrap; gap: 2px; }
-      .calendar-activity-dot { display: block; width: 6px; height: 6px; }
-      .calendar-day.has-activity .calendar-day-activities::after { content: ''; }
+      .calendar-day { min-height: 60px; padding: 6px; }
+      .calendar-day-number { font-size: 13px; }
+      .calendar-activity-text { font-size: 9px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+      .calendar-day-activities { gap: 2px; }
     }
 
     ::-webkit-scrollbar { width: 8px; }
@@ -873,9 +875,14 @@
     }
     
     function attachTooltipEvents() {
+      const isMobile = window.innerWidth < 768;
       document.querySelectorAll('.calendar-day.has-activity').forEach(el => {
-        el.addEventListener('mouseenter', showTooltip);
-        el.addEventListener('mouseleave', hideTooltip);
+        if (isMobile) {
+          el.addEventListener('click', (e) => { e.stopPropagation(); showTooltip(e); });
+        } else {
+          el.addEventListener('mouseenter', showTooltip);
+          el.addEventListener('mouseleave', hideTooltip);
+        }
       });
     }
 
@@ -893,18 +900,34 @@
       document.getElementById('tooltipContent').innerHTML = dayActivities.slice(0, 5).map(a => {
         const time = new Date(a.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
         const dur = Math.round(a.duration / 60000);
-        return `<div class="tooltip-item"><div class="tooltip-task">${esc(a.task || 'Task')}</div><div class="tooltip-meta">${time} · ${dur} min</div></div>`;
+        return `<div class="tooltip-item" onclick="openChat({timestamp:${a.timestamp},task:'${esc(a.task||'Task').replace(/'/g,"\\'")}',duration:${a.duration}})"><div class="tooltip-task">${esc(a.task || 'Task')}</div><div class="tooltip-meta">${time} · ${dur} min</div></div>`;
       }).join('') + (dayActivities.length > 5 ? `<div class="tooltip-meta" style="padding-top:8px">+${dayActivities.length - 5} more</div>` : '');
       
       const rect = el.getBoundingClientRect();
-      tooltip.style.left = Math.min(rect.left, window.innerWidth - 320) + 'px';
-      tooltip.style.top = (rect.bottom + 8) + 'px';
+      const isMobile = window.innerWidth < 768;
+      if (isMobile) {
+        tooltip.style.left = '10px';
+        tooltip.style.right = '10px';
+        tooltip.style.top = '50%';
+        tooltip.style.transform = 'translateY(-50%)';
+      } else {
+        tooltip.style.left = Math.min(rect.left, window.innerWidth - 320) + 'px';
+        tooltip.style.top = (rect.bottom + 8) + 'px';
+        tooltip.style.transform = 'none';
+      }
       tooltip.classList.add('visible');
     }
 
     function hideTooltip() {
       tooltip.classList.remove('visible');
     }
+    
+    // Close tooltip on tap outside (mobile)
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.tooltip') && !e.target.closest('.calendar-day')) {
+        hideTooltip();
+      }
+    });
 
     document.getElementById('prevPeriod').addEventListener('click', () => {
       if (calendarView === 'week') {
