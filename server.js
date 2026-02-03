@@ -185,10 +185,19 @@ app.post('/api/chat', requireAuth, (req, res) => {
   if (!chats[activityId]) chats[activityId] = [];
   chats[activityId].push({ from: 'user', text: message, task, time: Date.now() });
   saveChats(chats);
-  const pending = path.join(__dirname, 'pending-chats.json');
-  let p = []; try { p = JSON.parse(fs.readFileSync(pending, 'utf8')); } catch(e) {}
-  p.push({ activityId, task, message, time: Date.now() });
-  fs.writeFileSync(pending, JSON.stringify(p, null, 2));
+  
+  // Webhook: wake Jarvis via OpenClaw gateway
+  const http = require('http');
+  const payload = JSON.stringify({ action: 'wake', mode: 'now', text: `[Dashboard Chat] Task: "${task}" | Message: ${message} | ActivityId: ${activityId}` });
+  const webhookReq = http.request({
+    hostname: 'localhost', port: 18789, path: '/api/cron',
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer 6444179f636ff5a7a1818db88b90e0e253d32dfa1a42e23b' }
+  }, () => {});
+  webhookReq.on('error', () => {});
+  webhookReq.write(payload);
+  webhookReq.end();
+  
   res.json({ success: true });
 });
 
@@ -236,3 +245,5 @@ const httpsServer = https.createServer({
 httpsServer.listen(PORT, '0.0.0.0', () => {
   console.log(`🦊 Jarvis Dashboard running on https://0.0.0.0:${PORT}`);
 });
+
+// Webhook: notify Jarvis via OpenClaw gateway
