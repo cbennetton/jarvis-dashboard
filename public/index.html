@@ -663,26 +663,84 @@
     }
 
     function initCharts() {
-      const opts = {
+      const baseOpts = {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
+        plugins: { 
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(0,0,0,0.8)',
+            titleColor: '#fff',
+            bodyColor: '#ccc',
+            padding: 12,
+            cornerRadius: 8
+          }
+        },
         scales: {
-          x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'rgba(255,255,255,0.5)' } },
-          y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'rgba(255,255,255,0.5)' }, beginAtZero: true }
+          x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'rgba(255,255,255,0.6)', font: { size: 11 } } },
+          y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'rgba(255,255,255,0.6)', font: { size: 11 } }, beginAtZero: true }
         }
       };
 
       hourlyChart = new Chart(document.getElementById('hourlyChart'), {
         type: 'bar',
-        data: { labels: [], datasets: [{ data: [], backgroundColor: 'rgba(16, 185, 129, 0.6)', borderColor: 'rgba(16, 185, 129, 1)', borderWidth: 1, borderRadius: 4 }] },
-        options: opts
+        data: { labels: [], datasets: [{ 
+          label: 'Active Minutes',
+          data: [], 
+          backgroundColor: 'rgba(16, 185, 129, 0.7)', 
+          borderColor: 'rgba(16, 185, 129, 1)', 
+          borderWidth: 1, 
+          borderRadius: 6,
+          hoverBackgroundColor: 'rgba(16, 185, 129, 1)'
+        }] },
+        options: {
+          ...baseOpts,
+          plugins: {
+            ...baseOpts.plugins,
+            tooltip: {
+              ...baseOpts.plugins.tooltip,
+              callbacks: {
+                title: (items) => items[0].label,
+                label: (item) => `${item.raw} minutes active`
+              }
+            }
+          },
+          scales: {
+            ...baseOpts.scales,
+            y: { ...baseOpts.scales.y, title: { display: true, text: 'Minutes', color: 'rgba(255,255,255,0.5)', font: { size: 10 } } }
+          }
+        }
       });
 
       dailyChart = new Chart(document.getElementById('dailyChart'), {
         type: 'line',
-        data: { labels: [], datasets: [{ data: [], borderColor: 'rgba(59, 130, 246, 1)', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.4 }] },
-        options: opts
+        data: { labels: [], datasets: [{ 
+          label: 'Active Minutes',
+          data: [], 
+          borderColor: 'rgba(59, 130, 246, 1)', 
+          backgroundColor: 'rgba(59, 130, 246, 0.15)', 
+          fill: true, 
+          tension: 0.4,
+          pointBackgroundColor: 'rgba(59, 130, 246, 1)',
+          pointRadius: 4,
+          pointHoverRadius: 6
+        }] },
+        options: {
+          ...baseOpts,
+          plugins: {
+            ...baseOpts.plugins,
+            tooltip: {
+              ...baseOpts.plugins.tooltip,
+              callbacks: {
+                label: (item) => `${item.raw} minutes active`
+              }
+            }
+          },
+          scales: {
+            ...baseOpts.scales,
+            y: { ...baseOpts.scales.y, title: { display: true, text: 'Minutes', color: 'rgba(255,255,255,0.5)', font: { size: 10 } } }
+          }
+        }
       });
     }
 
@@ -741,11 +799,27 @@
     }
 
     function updateCharts(stats) {
-      hourlyChart.data.labels = stats.hourly.map(h => h.hour + ':00');
+      // Hourly chart - show hours like "9am", "2pm", etc.
+      hourlyChart.data.labels = stats.hourly.map(h => {
+        const hr = h.hour;
+        if (hr === 0) return '12am';
+        if (hr === 12) return '12pm';
+        return hr < 12 ? hr + 'am' : (hr - 12) + 'pm';
+      });
       hourlyChart.data.datasets[0].data = stats.hourly.map(h => h.activeMinutes);
       hourlyChart.update('none');
 
-      dailyChart.data.labels = stats.daily.map(d => d.date);
+      // Daily chart - show "Today", "Yesterday", or date
+      const today = new Date().toLocaleDateString('en-US', { weekday: 'short' });
+      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const todayIdx = new Date().getDay();
+      const yesterdayDay = days[(todayIdx + 6) % 7];
+      
+      dailyChart.data.labels = stats.daily.map((d, i) => {
+        if (i === stats.daily.length - 1) return 'Today';
+        if (i === stats.daily.length - 2) return 'Yesterday';
+        return d.date;
+      });
       dailyChart.data.datasets[0].data = stats.daily.map(d => d.activeMinutes);
       dailyChart.update('none');
     }
