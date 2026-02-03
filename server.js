@@ -27,11 +27,6 @@ function loadDB() {
   return { users: [], activities: [], currentStatus: { active: false, task: null, startedAt: null }, repos: [] };
 }
 
-// Repos endpoint
-app.get('/api/repos', requireAuth, (req, res) => {
-  res.json(db.repos || []);
-});
-
 function saveDB(data) {
   fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
 }
@@ -127,6 +122,10 @@ app.post('/api/setup', async (req, res) => {
   saveDB(db);
   req.session.authenticated = true;
   res.json({ success: true });
+});
+
+app.get('/api/repos', requireAuth, (req, res) => {
+  res.json(db.repos || []);
 });
 
 app.get('/api/status', requireAuth, (req, res) => {
