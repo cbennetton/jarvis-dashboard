@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head><title>Simple Test</title></head>
+<body style="font-family: sans-serif; padding: 40px; background: #111; color: #fff;">
+<h1>Simple API Test</h1>
+
+<p>If you see JSON below, the API works:</p>
+
+<iframe src="/api/needs-setup" style="width: 100%; height: 50px; background: #222; border: 1px solid #444;"></iframe>
+
+<hr>
+
+<h2>Direct Login Form</h2>
+<form action="/api/login" method="POST" style="display: flex; flex-direction: column; gap: 10px; max-width: 300px;">
+  <input type="text" name="username" placeholder="Username" value="christopher" style="padding: 10px;">
+  <input type="password" name="password" placeholder="Password" value="jarvis2026" style="padding: 10px;">
+  <button type="submit" style="padding: 10px; background: #10b981; border: none; color: white; cursor: pointer;">Login</button>
+</form>
+
+<p style="color: #888; margin-top: 20px;">If the iframe shows {"needsSetup":false} and login works, then the issue is with JavaScript fetch().</p>
+</body>
+</html>

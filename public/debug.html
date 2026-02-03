@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head><title>API Debug</title></head>
+<body style="font-family: monospace; padding: 20px; background: #1a1a2e; color: #fff;">
+<h2>API Debug Page</h2>
+<pre id="output">Testing APIs...</pre>
+<script>
+async function test() {
+  const out = document.getElementById('output');
+  let result = '';
+  
+  try {
+    result += '1. Testing /api/needs-setup...\n';
+    const r1 = await fetch('/api/needs-setup');
+    const d1 = await r1.json();
+    result += '   Response: ' + JSON.stringify(d1) + '\n\n';
+  } catch(e) {
+    result += '   ERROR: ' + e.message + '\n\n';
+  }
+  
+  try {
+    result += '2. Testing /api/auth-check...\n';
+    const r2 = await fetch('/api/auth-check');
+    const d2 = await r2.json();
+    result += '   Response: ' + JSON.stringify(d2) + '\n\n';
+  } catch(e) {
+    result += '   ERROR: ' + e.message + '\n\n';
+  }
+  
+  try {
+    result += '3. Testing POST /api/login...\n';
+    const r3 = await fetch('/api/login', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({username: 'christopher', password: 'jarvis2026'})
+    });
+    const d3 = await r3.json();
+    result += '   Response: ' + JSON.stringify(d3) + '\n\n';
+  } catch(e) {
+    result += '   ERROR: ' + e.message + '\n\n';
+  }
+  
+  out.textContent = result;
+}
+test();
+</script>
+</body>
+</html>
