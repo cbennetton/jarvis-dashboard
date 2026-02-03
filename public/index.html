@@ -170,19 +170,6 @@
     .status-task { font-size: 20px; font-weight: 600; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .status-time { color: var(--text-secondary); font-size: 13px; }
 
-    .status-activity-chart {
-      height: 120px;
-      position: relative;
-      margin-bottom: 16px;
-    }
-
-    .status-activity-stats {
-      display: flex;
-      justify-content: space-around;
-      padding-top: 16px;
-      border-top: 1px solid var(--border);
-    }
-
     .mini-stat {
       text-align: center;
     }
@@ -200,6 +187,64 @@
       text-transform: uppercase;
       letter-spacing: 0.5px;
       margin-top: 2px;
+    }
+
+    .status-stats-right {
+      display: flex;
+      gap: 24px;
+      margin-left: auto;
+      padding-left: 24px;
+      border-left: 1px solid var(--border);
+    }
+
+    .charts-section {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    .charts-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .chart-toggle {
+      display: flex;
+      background: var(--bg-secondary);
+      border-radius: 10px;
+      padding: 4px;
+    }
+
+    .chart-toggle-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    .chart-toggle-btn:hover { color: var(--text-secondary); }
+    .chart-toggle-btn.active { background: var(--accent); color: white; }
+
+    .chart-stats {
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+    .chart-stat strong {
+      color: var(--accent);
+    }
+
+    .chart-wrapper {
+      position: relative;
+    }
+
+    .chart-container {
+      height: 160px;
     }
 
     .repos-card { background:var(--bg-card); border:1px solid var(--border); border-radius:16px; padding:20px; margin-bottom:24px; }
@@ -517,8 +562,9 @@
     </header>
 
     <main class="main-content">
-      <!-- Combined Status + Activity Card -->
+      <!-- Unified Status + Activity Card -->
       <div class="status-activity-card">
+        <!-- Top: Status -->
         <div class="status-activity-top">
           <div class="status-indicator" id="statusIndicator">
             <span class="status-icon" id="statusIcon">💤</span>
@@ -528,26 +574,36 @@
             <div class="status-task" id="statusTask">Idle</div>
             <div class="status-time" id="statusTime">No active tasks</div>
           </div>
+          <div class="status-stats-right">
+            <div class="mini-stat">
+              <div class="mini-stat-value" id="statToday">0</div>
+              <div class="mini-stat-label">Today</div>
+            </div>
+            <div class="mini-stat">
+              <div class="mini-stat-value" id="statTotal">0</div>
+              <div class="mini-stat-label">Total</div>
+            </div>
+          </div>
         </div>
-        <div class="status-activity-chart">
-          <canvas id="hourlyChart"></canvas>
-        </div>
-        <div class="status-activity-stats">
-          <div class="mini-stat">
-            <div class="mini-stat-value" id="statToday">0</div>
-            <div class="mini-stat-label">Tasks Today</div>
+
+        <!-- Charts with toggle -->
+        <div class="charts-section">
+          <div class="charts-header">
+            <div class="chart-toggle">
+              <button class="chart-toggle-btn active" data-chart="hourly">Last 24h</button>
+              <button class="chart-toggle-btn" data-chart="daily">This Week</button>
+            </div>
+            <div class="chart-stats">
+              <span class="chart-stat"><strong id="statHours">0h</strong> active</span>
+            </div>
           </div>
-          <div class="mini-stat">
-            <div class="mini-stat-value" id="statHours">0h</div>
-            <div class="mini-stat-label">Active (24h)</div>
-          </div>
-          <div class="mini-stat">
-            <div class="mini-stat-value" id="statTotal">0</div>
-            <div class="mini-stat-label">Total Tasks</div>
-          </div>
-          <div class="mini-stat">
-            <div class="mini-stat-value" id="statTotalHours">0h</div>
-            <div class="mini-stat-label">Total Time</div>
+          <div class="chart-wrapper">
+            <div class="chart-container" id="hourlyChartContainer">
+              <canvas id="hourlyChart"></canvas>
+            </div>
+            <div class="chart-container" id="dailyChartContainer" style="display:none;">
+              <canvas id="dailyChart"></canvas>
+            </div>
           </div>
         </div>
       </div>
@@ -556,12 +612,6 @@
       <div class="repos-card" id="reposCard" style="display:none;">
         <div class="repos-title">🐙 Active Repositories</div>
         <div class="repos-list" id="reposList"></div>
-      </div>
-
-      <!-- Weekly Chart -->
-      <div class="chart-card" style="margin-bottom: 24px;">
-        <div class="chart-title">📈 Weekly Overview</div>
-        <div class="chart-container"><canvas id="dailyChart"></canvas></div>
       </div>
 
       <!-- Calendar -->
@@ -657,9 +707,23 @@
       loginScreen.style.display = 'none';
       dashboard.style.display = 'block';
       initCharts();
+      initChartToggle();
       renderCalendar();
       loadData();
       setInterval(loadData, 5000);
+    }
+
+    function initChartToggle() {
+      document.querySelectorAll('.chart-toggle-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.chart-toggle-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          
+          const chart = btn.dataset.chart;
+          document.getElementById('hourlyChartContainer').style.display = chart === 'hourly' ? 'block' : 'none';
+          document.getElementById('dailyChartContainer').style.display = chart === 'daily' ? 'block' : 'none';
+        });
+      });
     }
 
     function initCharts() {
