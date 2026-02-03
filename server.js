@@ -129,7 +129,17 @@ app.get('/api/repos', requireAuth, (req, res) => {
 });
 
 app.get('/api/status', requireAuth, (req, res) => {
-  res.json(db.currentStatus);
+  const TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes
+  const status = { ...db.currentStatus };
+  
+  // Auto-timeout: if active but no update for 15 minutes, show as inactive (grey)
+  const lastUpdate = status.updatedAt || status.startedAt;
+  if (status.active && lastUpdate && (Date.now() - lastUpdate > TIMEOUT_MS)) {
+    status.active = false;
+    status.timedOut = true;
+  }
+  
+  res.json(status);
 });
 
 app.get('/api/activities', requireAuth, (req, res) => {
@@ -186,19 +196,32 @@ app.post('/api/chat', requireAuth, (req, res) => {
   chats[activityId].push({ from: 'user', text: message, task, time: Date.now() });
   saveChats(chats);
   
-  // Webhook: wake Jarvis via OpenClaw gateway
+  // Webhook: wake Jarvis via OpenClaw hooks endpoint
   const http = require('http');
-  const payload = JSON.stringify({ action: 'wake', mode: 'now', text: `[Dashboard Chat] Task: "${task}" | Message: ${message} | ActivityId: ${activityId}` });
+  const payload = JSON.stringify({ 
+    text: `🖥️ DASHBOARD CHAT from Christopher:\nTask: "${task}"\nMessage: ${message}\nActivityId: ${activityId}\n\nRespond using: ~/.openclaw/workspace/scripts/dashboard-chat-reply.sh ${activityId} "your response"`,
+    mode: 'now'
+  });
+  
   const webhookReq = http.request({
-    hostname: 'localhost', port: 18789, path: '/api/cron',
+    hostname: 'localhost', 
+    port: 18789, 
+    path: '/hooks/wake',
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer 6444179f636ff5a7a1818db88b90e0e253d32dfa1a42e23b' }
-  }, () => {});
-  webhookReq.on('error', () => {});
+    headers: { 
+      'Content-Type': 'application/json', 
+      'Authorization': 'Bearer jarvis-webhook-secret-2026' 
+    }
+  }, (webhookRes) => {
+    let data = '';
+    webhookRes.on('data', chunk => data += chunk);
+    webhookRes.on('end', () => console.log('Wake response:', webhookRes.statusCode, data));
+  });
+  webhookReq.on('error', (e) => console.error('Wake error:', e.message));
   webhookReq.write(payload);
   webhookReq.end();
   
-  res.json({ success: true });
+  res.json({ success: true, webhookSent: true });
 });
 
 // Internal: post response to chat (for Jarvis)
@@ -219,16 +242,26 @@ app.post('/api/internal/status', (req, res) => {
     return res.status(401).json({ error: 'Invalid API key' });
   }
   const { active, task } = req.body;
+  const now = Date.now();
+  
+  // If going from active to inactive, log the activity
   if (db.currentStatus.active && !active && db.currentStatus.startedAt) {
     db.activities.push({
       task: db.currentStatus.task,
       timestamp: db.currentStatus.startedAt,
-      duration: Date.now() - db.currentStatus.startedAt,
-      endedAt: Date.now()
+      duration: now - db.currentStatus.startedAt,
+      endedAt: now
     });
     if (db.activities.length > 1000) db.activities = db.activities.slice(-1000);
   }
-  db.currentStatus = { active: !!active, task: active ? task : null, startedAt: active ? Date.now() : null };
+  
+  // Update status with updatedAt timestamp for timeout tracking
+  db.currentStatus = { 
+    active: !!active, 
+    task: active ? task : null, 
+    startedAt: active ? (db.currentStatus.startedAt || now) : null,
+    updatedAt: now
+  };
   saveDB(db);
   res.json({ success: true });
 });
