@@ -826,6 +826,7 @@
     /* On desktop: show grid, hide mobile views */
     @media (min-width: 769px) {
       .calendar-grid-desktop { display: grid; }
+      .calendar-week-desktop { display: grid; }
       .calendar-grid-mobile { display: none !important; }
       .calendar-week-list { display: none !important; }
     }
@@ -833,6 +834,7 @@
     /* On mobile: hide desktop grid, show appropriate mobile view */
     @media (max-width: 768px) {
       .calendar-grid-desktop { display: none !important; }
+      .calendar-week-desktop { display: none !important; }
       
       /* Week view - show vertical list by default */
       #calendarGrid .calendar-week-list { display: flex; }
@@ -3142,7 +3144,7 @@
       }
 
       // Render to both containers
-      grid.innerHTML = desktopHtml + `<div class="calendar-week-list">${mobileHtml}</div>`;
+      grid.innerHTML = `<div class="calendar-week-desktop">${desktopHtml}</div><div class="calendar-week-list">${mobileHtml}</div>`;
       
       attachTooltipEvents();
     }
