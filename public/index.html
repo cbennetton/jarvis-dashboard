@@ -409,6 +409,49 @@
     .repo-name { font-weight:500; }
     .repo-desc { font-size:12px; color:var(--text-muted); }
 
+    /* Repositories Page */
+    .repos-page-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px;
+    }
+    .repos-list-page {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .repo-page-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 16px 20px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      text-decoration: none;
+      color: var(--text-primary);
+      transition: all 0.2s;
+    }
+    .repo-page-item:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px var(--accent-glow);
+    }
+    .repo-page-item.active { border-color: var(--accent); }
+    .repo-page-icon { font-size: 24px; flex-shrink: 0; }
+    .repo-page-info { flex: 1; min-width: 0; }
+    .repo-page-name { font-weight: 600; font-size: 15px; margin-bottom: 4px; }
+    .repo-page-desc { font-size: 13px; color: var(--text-muted); }
+    .repo-page-item:hover .repo-page-desc { color: rgba(255,255,255,0.8); }
+    @media (max-width: 768px) {
+      .repos-page-card { padding: 16px; }
+      .repos-list-page { grid-template-columns: 1fr; gap: 12px; }
+      .repo-page-item { padding: 14px 16px; }
+    }
+
     .chart-card, .calendar-card, .activity-card {
       background: var(--bg-card);
       backdrop-filter: blur(20px);
@@ -2063,6 +2106,10 @@
           <span class="nav-item-icon">🏠</span>
           <span>Home</span>
         </div>
+        <div class="nav-item" data-page="repositories">
+          <span class="nav-item-icon">📦</span>
+          <span>Repositories</span>
+        </div>
         <div class="nav-item" data-page="markdowns">
           <span class="nav-item-icon">📝</span>
           <span>Markdown Files</span>
@@ -2146,12 +2193,6 @@
           </div>
         </div>
 
-        <!-- Repos Card -->
-        <div class="repos-card" id="reposCard" style="display:none;">
-          <div class="repos-title">🐙 Active Repositories</div>
-          <div class="repos-list" id="reposList"></div>
-        </div>
-
         <!-- Calendar Card -->
         <div class="calendar-card">
           <div class="calendar-header">
@@ -2178,6 +2219,24 @@
             <div class="empty-state">
               <div class="empty-state-icon">📭</div>
               <p>No activity yet</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Repositories Page -->
+      <div class="page" id="repositoriesPage">
+        <div class="page-header">
+          <h1 class="page-title">📦 Repositories</h1>
+          <button class="refresh-btn" id="refreshRepos">
+            <span class="refresh-icon">🔄</span> Refresh
+          </button>
+        </div>
+        <div class="repos-page-card">
+          <div class="repos-list-page" id="reposListPage">
+            <div class="empty-state">
+              <div class="empty-state-icon">📦</div>
+              <p>Loading repositories...</p>
             </div>
           </div>
         </div>
@@ -2502,10 +2561,11 @@
       document.getElementById(`${pageName}Page`).classList.add('active');
 
       // Update header title
-      const titles = { home: 'Dashboard', markdowns: 'Markdown Files', skills: 'Skills', newsletters: 'Newsletters', usage: 'API Usage' };
+      const titles = { home: 'Dashboard', repositories: 'Repositories', markdowns: 'Markdown Files', skills: 'Skills', newsletters: 'Newsletters', usage: 'API Usage' };
       document.getElementById('headerPageTitle').textContent = titles[pageName] || 'Dashboard';
 
       // Load page content
+      if (pageName === 'repositories') loadRepositoriesPage();
       if (pageName === 'markdowns') loadMarkdowns();
       if (pageName === 'skills') loadSkills();
       if (pageName === 'newsletters') loadNewsletters();
@@ -2569,7 +2629,6 @@
         updateCharts(stats);
         updateActivityList(allActivities);
         renderCalendar();
-        loadRepos();
       } catch (e) {
         console.error('Load failed:', e);
       }
@@ -2636,17 +2695,28 @@
       });
     }
 
-    async function loadRepos() {
+    async function loadRepositoriesPage() {
+      const list = document.getElementById('reposListPage');
+      list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📦</div><p>Loading repositories...</p></div>';
       try {
         const res = await fetch('/api/repos', { credentials: 'same-origin' });
         const repos = await res.json();
-        const card = document.getElementById('reposCard');
-        const list = document.getElementById('reposList');
         if (repos.length) {
-          card.style.display = 'block';
-          list.innerHTML = repos.map(r => `<a href="${r.url}" target="_blank" class="repo-item${r.active?' active':''}"><span>📦</span><div><div class="repo-name">${esc(r.name)}</div><div class="repo-desc">${esc(r.desc)}</div></div></a>`).join('');
+          list.innerHTML = repos.map(r => `
+            <a href="${r.url}" target="_blank" class="repo-page-item${r.active ? ' active' : ''}">
+              <span class="repo-page-icon">📦</span>
+              <div class="repo-page-info">
+                <div class="repo-page-name">${esc(r.name)}</div>
+                <div class="repo-page-desc">${esc(r.desc || 'No description')}</div>
+              </div>
+            </a>
+          `).join('');
+        } else {
+          list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📦</div><p>No repositories configured</p></div>';
         }
-      } catch(e) {}
+      } catch(e) {
+        list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⚠️</div><p>Failed to load repositories</p></div>';
+      }
     }
 
     // ==================== CALENDAR ====================
@@ -3062,6 +3132,13 @@
     }
 
     document.getElementById('refreshMarkdowns').addEventListener('click', () => loadMarkdowns(true));
+
+    // ==================== REPOSITORIES ====================
+    document.getElementById('refreshRepos').addEventListener('click', () => {
+      const btn = document.getElementById('refreshRepos');
+      btn.classList.add('loading');
+      loadRepositoriesPage().finally(() => btn.classList.remove('loading'));
+    });
 
     // ==================== SKILLS ====================
     let skillsTree = [];
