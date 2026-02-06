@@ -1579,160 +1579,231 @@
 
     .newsletters-container {
       display: grid;
-      gap: 20px;
+      gap: 12px;
+      max-height: calc(100vh - 200px);
+      overflow-y: auto;
+      padding-right: 4px;
     }
 
+    /* Compact Newsletter Card */
     .newsletter-card {
       background: var(--bg-card);
       backdrop-filter: blur(20px);
       border: 1px solid var(--border);
       border-radius: 16px;
-      padding: 24px;
-      transition: all 0.2s;
+      padding: 16px 20px;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
     }
-    .newsletter-card:hover { border-color: rgba(255,255,255,0.15); }
+    .newsletter-card:hover { 
+      border-color: rgba(255,255,255,0.15); 
+      background: rgba(255, 255, 255, 0.04);
+    }
     .newsletter-card.disabled { opacity: 0.6; }
+    .newsletter-card.expanded { cursor: default; }
 
-    .newsletter-header {
+    /* Accent bar at top */
+    .newsletter-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--accent);
+      opacity: 0.7;
+    }
+    .newsletter-card.disabled::before {
+      background: var(--inactive);
+    }
+
+    /* Compact Header - Always Visible */
+    .newsletter-compact {
       display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      margin-bottom: 16px;
+      align-items: center;
       gap: 16px;
     }
 
-    .newsletter-recipient {
+    .newsletter-icon {
+      font-size: 28px;
+      flex-shrink: 0;
+    }
+
+    .newsletter-main-info {
       flex: 1;
       min-width: 0;
     }
 
     .newsletter-name {
-      font-size: 18px;
+      font-size: 15px;
       font-weight: 600;
-      margin-bottom: 4px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      margin-bottom: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .newsletter-email {
       color: var(--text-muted);
-      font-size: 14px;
+      font-size: 13px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
-    .newsletter-status {
+    .newsletter-schedule-compact {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 2px;
+      flex-shrink: 0;
+    }
+
+    .newsletter-schedule-time {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    .newsletter-schedule-freq {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .newsletter-compact-right {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 12px;
+      flex-shrink: 0;
     }
 
-    .status-badge {
-      padding: 4px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 500;
-    }
-    .status-badge.enabled {
-      background: rgba(16, 185, 129, 0.2);
-      color: var(--accent);
-    }
-    .status-badge.disabled {
-      background: rgba(239, 68, 68, 0.2);
-      color: var(--danger);
+    .newsletter-last-sent {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-align: right;
+      max-width: 100px;
     }
 
     .newsletter-toggle {
       position: relative;
-      width: 48px;
-      height: 26px;
+      width: 44px;
+      height: 24px;
       background: var(--inactive);
-      border-radius: 13px;
+      border-radius: 12px;
       cursor: pointer;
       transition: all 0.3s;
+      flex-shrink: 0;
     }
     .newsletter-toggle.enabled { background: var(--accent); }
     .newsletter-toggle::after {
       content: '';
       position: absolute;
-      width: 22px;
-      height: 22px;
+      width: 20px;
+      height: 20px;
       background: white;
       border-radius: 50%;
       top: 2px;
       left: 2px;
       transition: all 0.3s;
     }
-    .newsletter-toggle.enabled::after { left: 24px; }
+    .newsletter-toggle.enabled::after { left: 22px; }
 
-    .newsletter-body {
-      display: grid;
-      gap: 16px;
+    .newsletter-expand-icon {
+      font-size: 12px;
+      color: var(--text-muted);
+      transition: transform 0.3s ease;
+      flex-shrink: 0;
+    }
+    .newsletter-card.expanded .newsletter-expand-icon {
+      transform: rotate(180deg);
     }
 
-    .newsletter-info-row {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
+    /* Expand hint on hover */
+    .newsletter-expand-hint {
+      position: absolute;
+      bottom: 4px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 10px;
+      color: var(--text-muted);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .newsletter-card:hover .newsletter-expand-hint { opacity: 1; }
+    .newsletter-card.expanded .newsletter-expand-hint { display: none; }
+
+    /* Expanded Details */
+    .newsletter-details {
+      display: none;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      animation: slideDown 0.3s ease;
+    }
+    .newsletter-card.expanded .newsletter-details { display: block; }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
-    .newsletter-info-item {
+    .newsletter-details-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .newsletter-detail-item {
       background: var(--bg-secondary);
-      padding: 12px 16px;
-      border-radius: 10px;
+      padding: 10px 12px;
+      border-radius: 8px;
     }
 
-    .newsletter-info-label {
-      font-size: 11px;
+    .newsletter-detail-label {
+      font-size: 10px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       color: var(--text-muted);
-      margin-bottom: 4px;
+      margin-bottom: 2px;
     }
 
-    .newsletter-info-value {
-      font-size: 14px;
+    .newsletter-detail-value {
+      font-size: 13px;
       color: var(--text-primary);
       word-break: break-word;
     }
 
     .newsletter-prompt {
       background: var(--bg-secondary);
-      padding: 16px;
+      padding: 14px;
       border-radius: 10px;
       border-left: 3px solid var(--accent);
+      margin-bottom: 16px;
     }
 
     .newsletter-prompt-label {
-      font-size: 11px;
+      font-size: 10px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       color: var(--text-muted);
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
 
     .newsletter-prompt-text {
-      font-size: 14px;
+      font-size: 13px;
       color: var(--text-secondary);
-      line-height: 1.6;
+      line-height: 1.5;
       white-space: pre-wrap;
-    }
-
-    .newsletter-footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 16px;
-      padding-top: 16px;
-      border-top: 1px solid var(--border);
-    }
-
-    .newsletter-meta {
-      font-size: 12px;
-      color: var(--text-muted);
+      max-height: 150px;
+      overflow-y: auto;
     }
 
     .newsletter-actions {
       display: flex;
+      justify-content: flex-end;
       gap: 8px;
     }
 
@@ -1748,6 +1819,20 @@
     }
     .newsletter-action-btn:hover { background: var(--bg-secondary); color: var(--text-primary); }
     .newsletter-action-btn.delete:hover { background: rgba(239, 68, 68, 0.2); color: var(--danger); border-color: var(--danger); }
+
+    .newsletter-collapse-btn {
+      width: 100%;
+      margin-top: 12px;
+      padding: 8px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-muted);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .newsletter-collapse-btn:hover { background: var(--bg-secondary); color: var(--text-primary); }
 
     /* Newsletter Modal */
     .newsletter-modal-overlay {
@@ -1878,21 +1963,65 @@
       .page-header-actions { flex-wrap: wrap; }
       .add-btn { padding: 8px 12px; font-size: 12px; }
       
-      .newsletter-card { padding: 16px; }
-      .newsletter-header { flex-direction: column; gap: 12px; }
-      .newsletter-name { font-size: 16px; }
-      .newsletter-status { align-self: flex-start; }
+      .newsletters-container { 
+        max-height: calc(100vh - 180px);
+        gap: 10px;
+      }
       
-      .newsletter-info-row { grid-template-columns: 1fr; }
+      .newsletter-card { padding: 14px 16px; }
       
-      .newsletter-footer { flex-direction: column; gap: 12px; align-items: stretch; }
-      .newsletter-actions { justify-content: flex-end; }
+      .newsletter-compact {
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      
+      .newsletter-icon { font-size: 24px; }
+      
+      .newsletter-main-info {
+        flex: 1;
+        min-width: 120px;
+      }
+      
+      .newsletter-name { font-size: 14px; }
+      .newsletter-email { font-size: 12px; }
+      
+      .newsletter-schedule-compact {
+        align-items: flex-start;
+      }
+      
+      .newsletter-schedule-time { font-size: 13px; }
+      
+      .newsletter-compact-right {
+        width: 100%;
+        justify-content: space-between;
+        padding-top: 8px;
+        border-top: 1px solid var(--border);
+        margin-top: 4px;
+      }
+      
+      .newsletter-last-sent { 
+        max-width: none;
+        text-align: left;
+      }
+      
+      .newsletter-details-grid {
+        grid-template-columns: 1fr;
+      }
       
       .newsletter-form-row { grid-template-columns: 1fr; }
       
       .newsletter-modal { max-height: 85vh; }
       .newsletter-modal-header { padding: 16px 20px; }
       .newsletter-modal-body { padding: 20px; }
+    }
+    
+    @media (max-width: 380px) {
+      .newsletter-card { padding: 12px 14px; }
+      .newsletter-icon { font-size: 22px; }
+      .newsletter-name { font-size: 13px; }
+      .newsletter-toggle { width: 40px; height: 22px; }
+      .newsletter-toggle::after { width: 18px; height: 18px; }
+      .newsletter-toggle.enabled::after { left: 20px; }
     }
   </style>
 </head>
@@ -3192,59 +3321,113 @@
       }
 
       container.innerHTML = newsletters.map(nl => {
-        const scheduleText = formatSchedule(nl.schedule);
-        const lastSentText = nl.lastSent ? `Last sent: ${new Date(nl.lastSent).toLocaleString()}` : 'Never sent';
+        const { time, frequency } = formatScheduleCompact(nl.schedule);
+        const lastSentText = nl.lastSent ? formatLastSent(nl.lastSent) : 'Never sent';
+        const createdDate = new Date(nl.createdAt).toLocaleDateString();
         
         return `
-          <div class="newsletter-card ${nl.enabled ? '' : 'disabled'}" data-id="${nl.id}">
-            <div class="newsletter-header">
-              <div class="newsletter-recipient">
-                <div class="newsletter-name">
-                  ${nl.enabled ? '✉️' : '📪'} ${esc(nl.recipient.name || 'Unnamed')}
-                </div>
+          <div class="newsletter-card ${nl.enabled ? '' : 'disabled'}" data-id="${nl.id}" onclick="toggleNewsletterCard(this, event)">
+            <!-- Compact View (Always Visible) -->
+            <div class="newsletter-compact">
+              <div class="newsletter-icon">${nl.enabled ? '✉️' : '📪'}</div>
+              <div class="newsletter-main-info">
+                <div class="newsletter-name">${esc(nl.recipient.name || 'Unnamed')}</div>
                 <div class="newsletter-email">${esc(nl.recipient.email)}</div>
               </div>
-              <div class="newsletter-status">
-                <span class="status-badge ${nl.enabled ? 'enabled' : 'disabled'}">
-                  ${nl.enabled ? '✓ Active' : '⏸ Paused'}
-                </span>
+              <div class="newsletter-schedule-compact">
+                <div class="newsletter-schedule-time">${time}</div>
+                <div class="newsletter-schedule-freq">${frequency}</div>
+              </div>
+              <div class="newsletter-compact-right">
+                <div class="newsletter-last-sent">${lastSentText}</div>
                 <div class="newsletter-toggle ${nl.enabled ? 'enabled' : ''}" 
-                     onclick="toggleNewsletter('${nl.id}', ${!nl.enabled})"
-                     title="${nl.enabled ? 'Click to disable' : 'Click to enable'}"></div>
+                     onclick="event.stopPropagation(); toggleNewsletter('${nl.id}', ${!nl.enabled})"
+                     title="${nl.enabled ? 'Click to pause' : 'Click to activate'}"></div>
+                <span class="newsletter-expand-icon">▼</span>
               </div>
             </div>
-            <div class="newsletter-body">
-              <div class="newsletter-info-row">
-                <div class="newsletter-info-item">
-                  <div class="newsletter-info-label">📅 Schedule</div>
-                  <div class="newsletter-info-value">${scheduleText}</div>
+            <div class="newsletter-expand-hint">Click to expand</div>
+            
+            <!-- Expanded Details -->
+            <div class="newsletter-details">
+              <div class="newsletter-details-grid">
+                <div class="newsletter-detail-item">
+                  <div class="newsletter-detail-label">⏰ Cron Expression</div>
+                  <div class="newsletter-detail-value"><code>${esc(nl.schedule?.cron || '0 9 * * *')}</code></div>
                 </div>
-                <div class="newsletter-info-item">
-                  <div class="newsletter-info-label">🌐 Language</div>
-                  <div class="newsletter-info-value">${esc(nl.language || 'English')}</div>
+                <div class="newsletter-detail-item">
+                  <div class="newsletter-detail-label">🌐 Language</div>
+                  <div class="newsletter-detail-value">${esc(nl.language || 'English')}</div>
                 </div>
-                <div class="newsletter-info-item">
-                  <div class="newsletter-info-label">⏰ Cron</div>
-                  <div class="newsletter-info-value"><code>${esc(nl.schedule.cron)}</code></div>
+                <div class="newsletter-detail-item">
+                  <div class="newsletter-detail-label">📅 Created</div>
+                  <div class="newsletter-detail-value">${createdDate}</div>
+                </div>
+                <div class="newsletter-detail-item">
+                  <div class="newsletter-detail-label">🔑 Job ID</div>
+                  <div class="newsletter-detail-value">${esc(nl.cronJobId || nl.id)}</div>
                 </div>
               </div>
               <div class="newsletter-prompt">
-                <div class="newsletter-prompt-label">📝 Prompt</div>
+                <div class="newsletter-prompt-label">📝 Prompt / Instructions</div>
                 <div class="newsletter-prompt-text">${esc(nl.prompt || 'No prompt configured')}</div>
               </div>
-            </div>
-            <div class="newsletter-footer">
-              <div class="newsletter-meta">
-                ${lastSentText} · Created: ${new Date(nl.createdAt).toLocaleDateString()}
-              </div>
               <div class="newsletter-actions">
-                <button class="newsletter-action-btn" onclick="editNewsletter('${nl.id}')">✏️ Edit</button>
-                <button class="newsletter-action-btn delete" onclick="deleteNewsletter('${nl.id}')">🗑️ Delete</button>
+                <button class="newsletter-action-btn" onclick="event.stopPropagation(); editNewsletter('${nl.id}')">✏️ Edit</button>
+                <button class="newsletter-action-btn delete" onclick="event.stopPropagation(); deleteNewsletter('${nl.id}')">🗑️ Delete</button>
               </div>
+              <button class="newsletter-collapse-btn" onclick="event.stopPropagation(); collapseNewsletterCard(this.closest('.newsletter-card'))">▲ Collapse</button>
             </div>
           </div>
         `;
       }).join('');
+    }
+
+    function toggleNewsletterCard(card, event) {
+      // Don't expand if clicking toggle or already expanded (let collapse button handle it)
+      if (event.target.closest('.newsletter-toggle') || card.classList.contains('expanded')) return;
+      card.classList.add('expanded');
+    }
+
+    function collapseNewsletterCard(card) {
+      card.classList.remove('expanded');
+    }
+
+    function formatScheduleCompact(schedule) {
+      if (!schedule) return { time: 'Not set', frequency: 'Daily' };
+      const time = schedule.time || 'Unknown';
+      const tz = schedule.timezone || 'UTC';
+      // Parse cron to determine frequency
+      const cron = schedule.cron || '0 9 * * *';
+      const parts = cron.split(' ');
+      let frequency = 'Daily';
+      if (parts.length >= 5) {
+        const dayOfWeek = parts[4];
+        const dayOfMonth = parts[2];
+        if (dayOfWeek !== '*' && dayOfWeek !== '?') {
+          frequency = 'Weekly';
+        } else if (dayOfMonth !== '*' && dayOfMonth !== '?') {
+          frequency = 'Monthly';
+        }
+      }
+      return { time: `${time}`, frequency: `${frequency} · ${tz}` };
+    }
+
+    function formatLastSent(timestamp) {
+      const date = new Date(timestamp);
+      const now = new Date();
+      const diffMs = now - date;
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+      
+      if (diffDays === 0) {
+        return 'Sent today';
+      } else if (diffDays === 1) {
+        return 'Sent yesterday';
+      } else if (diffDays < 7) {
+        return `Sent ${diffDays}d ago`;
+      } else {
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      }
     }
 
     function formatSchedule(schedule) {
