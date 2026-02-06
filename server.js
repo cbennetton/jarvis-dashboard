@@ -515,6 +515,7 @@ const MODEL_INFO = {
 
 function parseSessionFile(filePath) {
   const usage = {};
+  const timeSeriesData = []; // Array of { timestamp, model, tokens, cost }
   
   try {
     const content = fs.readFileSync(filePath, 'utf8');
@@ -528,6 +529,17 @@ function parseSessionFile(filePath) {
         if (entry.message && entry.message.usage && entry.message.model) {
           const model = entry.message.model;
           const u = entry.message.usage;
+          // Parse timestamp - can be ISO string or Unix timestamp
+          let timestamp = Date.now();
+          if (entry.timestamp) {
+            timestamp = typeof entry.timestamp === 'string' 
+              ? new Date(entry.timestamp).getTime() 
+              : entry.timestamp;
+          } else if (entry.ts) {
+            timestamp = typeof entry.ts === 'string' 
+              ? new Date(entry.ts).getTime() 
+              : entry.ts;
+          }
           
           if (!usage[model]) {
             usage[model] = {
@@ -541,27 +553,32 @@ function parseSessionFile(filePath) {
             };
           }
           
+          const tokens = u.totalTokens || (u.input || 0) + (u.output || 0) + (u.cacheRead || 0) + (u.cacheWrite || 0);
+          
           usage[model].input += u.input || 0;
           usage[model].output += u.output || 0;
           usage[model].cacheRead += u.cacheRead || 0;
           usage[model].cacheWrite += u.cacheWrite || 0;
-          usage[model].totalTokens += u.totalTokens || (u.input || 0) + (u.output || 0) + (u.cacheRead || 0) + (u.cacheWrite || 0);
+          usage[model].totalTokens += tokens;
           
-          // Use pre-calculated cost if available, otherwise calculate
+          // Calculate cost
+          let cost;
           if (u.cost && u.cost.total) {
-            usage[model].cost += u.cost.total;
+            cost = u.cost.total;
           } else {
             const pricing = MODEL_PRICING[model] || MODEL_PRICING['claude-sonnet-4-5'];
-            const cost = (
+            cost = (
               ((u.input || 0) / 1000000) * pricing.input +
               ((u.output || 0) / 1000000) * pricing.output +
               ((u.cacheRead || 0) / 1000000) * pricing.cacheRead +
               ((u.cacheWrite || 0) / 1000000) * pricing.cacheWrite
             );
-            usage[model].cost += cost;
           }
-          
+          usage[model].cost += cost;
           usage[model].calls++;
+          
+          // Store for time series
+          timeSeriesData.push({ timestamp, model, tokens, cost });
         }
       } catch (e) {
         // Skip malformed lines
@@ -571,13 +588,15 @@ function parseSessionFile(filePath) {
     console.error(`Error reading session file ${filePath}:`, e.message);
   }
   
-  return usage;
+  return { usage, timeSeriesData };
 }
 
-function aggregateUsage(usageList) {
+function aggregateUsage(parsedFiles) {
   const aggregated = {};
+  const allTimeSeriesData = [];
   
-  for (const usage of usageList) {
+  for (const { usage, timeSeriesData } of parsedFiles) {
+    // Aggregate model totals
     for (const [model, data] of Object.entries(usage)) {
       if (!aggregated[model]) {
         aggregated[model] = {
@@ -599,9 +618,67 @@ function aggregateUsage(usageList) {
       aggregated[model].cost += data.cost;
       aggregated[model].calls += data.calls;
     }
+    
+    // Collect all time series data
+    allTimeSeriesData.push(...timeSeriesData);
   }
   
-  return aggregated;
+  return { aggregated, allTimeSeriesData };
+}
+
+function buildTimeSeries(allTimeSeriesData, days) {
+  const usdToEur = 0.92;
+  const now = Date.now();
+  const cutoff = now - (days * 24 * 60 * 60 * 1000);
+  
+  // Create a map of date -> model -> { tokens, cost }
+  const dateModelMap = {};
+  
+  for (const { timestamp, model, tokens, cost } of allTimeSeriesData) {
+    if (timestamp < cutoff) continue;
+    
+    // Get date string (YYYY-MM-DD)
+    const date = new Date(timestamp).toISOString().split('T')[0];
+    
+    if (!dateModelMap[date]) {
+      dateModelMap[date] = {};
+    }
+    if (!dateModelMap[date][model]) {
+      dateModelMap[date][model] = { tokens: 0, cost: 0 };
+    }
+    
+    dateModelMap[date][model].tokens += tokens;
+    dateModelMap[date][model].cost += cost * usdToEur; // Convert to EUR
+  }
+  
+  // Generate all dates in range for continuity
+  const dates = [];
+  const startDate = new Date(cutoff);
+  startDate.setHours(0, 0, 0, 0);
+  const endDate = new Date(now);
+  endDate.setHours(0, 0, 0, 0);
+  
+  for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+    dates.push(d.toISOString().split('T')[0]);
+  }
+  
+  // Build time series array
+  const timeSeries = dates.map(date => {
+    const entry = { date };
+    const dayData = dateModelMap[date] || {};
+    
+    // Add each model's data for this date
+    for (const [model, data] of Object.entries(dayData)) {
+      entry[model] = {
+        tokens: data.tokens,
+        cost: data.cost
+      };
+    }
+    
+    return entry;
+  });
+  
+  return timeSeries;
 }
 
 // GET /api/usage - Aggregate usage data
@@ -611,7 +688,7 @@ app.get('/api/usage', requireAuth, (req, res) => {
     const cutoffTime = Date.now() - (days * 24 * 60 * 60 * 1000);
     
     if (!fs.existsSync(SESSIONS_DIR)) {
-      return res.json({ models: {}, totals: { tokens: 0, cost: 0, calls: 0 }, period: days });
+      return res.json({ models: {}, totals: { tokens: 0, cost: 0, calls: 0 }, timeSeries: [], period: days });
     }
     
     const files = fs.readdirSync(SESSIONS_DIR)
@@ -623,8 +700,11 @@ app.get('/api/usage', requireAuth, (req, res) => {
       })
       .filter(f => f.mtime >= cutoffTime);
     
-    const usageList = files.map(f => parseSessionFile(f.path));
-    const aggregated = aggregateUsage(usageList);
+    const parsedFiles = files.map(f => parseSessionFile(f.path));
+    const { aggregated, allTimeSeriesData } = aggregateUsage(parsedFiles);
+    
+    // Build time series for chart
+    const timeSeries = buildTimeSeries(allTimeSeriesData, days);
     
     // Calculate totals
     let totalTokens = 0;
@@ -665,6 +745,7 @@ app.get('/api/usage', requireAuth, (req, res) => {
         costEur: totalCost * usdToEur,
         calls: totalCalls
       },
+      timeSeries,
       period: days,
       sessionsProcessed: files.length,
       timestamp: Date.now()

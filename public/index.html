@@ -1269,7 +1269,7 @@
     }
 
     .usage-chart-container {
-      height: 200px;
+      height: 280px;
       position: relative;
     }
 
@@ -1508,7 +1508,7 @@
 
       .usage-chart-card { padding: 16px; }
       .usage-chart-header { flex-direction: column; gap: 12px; align-items: stretch; }
-      .usage-chart-container { height: 180px; }
+      .usage-chart-container { height: 220px; }
 
       .usage-models-grid {
         grid-template-columns: 1fr;
@@ -1551,7 +1551,7 @@
       .usage-summary-icon { width: 48px; height: 48px; font-size: 22px; }
       .usage-summary-value { font-size: 20px; }
       .usage-model-emoji { font-size: 22px; }
-      .usage-chart-container { height: 160px; }
+      .usage-chart-container { height: 200px; }
     }
 
     /* ==================== NEWSLETTERS PAGE ==================== */
@@ -2169,13 +2169,13 @@
           </div>
         </div>
 
-        <!-- Usage Distribution Chart -->
+        <!-- Usage Over Time Chart -->
         <div class="usage-chart-card">
           <div class="usage-chart-header">
-            <div class="usage-chart-title">📊 Model Distribution</div>
+            <div class="usage-chart-title">📈 Usage Over Time</div>
           </div>
-          <div class="usage-chart-container">
-            <canvas id="usageDistributionChart"></canvas>
+          <div class="usage-chart-container" style="height: 280px;">
+            <canvas id="usageTimelineChart"></canvas>
           </div>
         </div>
 
@@ -3449,7 +3449,7 @@
     }
 
     function initUsageChart() {
-      const ctx = document.getElementById('usageDistributionChart');
+      const ctx = document.getElementById('usageTimelineChart');
       if (!ctx) return;
 
       const isMobile = window.innerWidth < 768;
@@ -3457,18 +3457,56 @@
       const chartOpts = {
         responsive: true,
         maintainAspectRatio: false,
-        cutout: '55%',
+        interaction: {
+          mode: 'index',
+          intersect: false
+        },
+        scales: {
+          x: {
+            grid: {
+              color: 'rgba(255,255,255,0.06)',
+              drawBorder: false
+            },
+            ticks: {
+              color: 'rgba(255,255,255,0.5)',
+              font: { size: isMobile ? 10 : 11 },
+              maxRotation: 45,
+              minRotation: 0,
+              autoSkip: true,
+              maxTicksLimit: isMobile ? 7 : 14
+            }
+          },
+          y: {
+            beginAtZero: true,
+            grid: {
+              color: 'rgba(255,255,255,0.06)',
+              drawBorder: false
+            },
+            ticks: {
+              color: 'rgba(255,255,255,0.5)',
+              font: { size: isMobile ? 10 : 11 },
+              callback: function(value) {
+                if (usageViewMode === 'tokens') {
+                  return formatTokensShort(value);
+                } else {
+                  return '€' + value.toFixed(2);
+                }
+              }
+            }
+          }
+        },
         plugins: {
           legend: {
             display: true,
-            position: isMobile ? 'bottom' : 'right',
+            position: 'top',
+            align: 'end',
             labels: {
               color: 'rgba(255,255,255,0.7)',
               padding: isMobile ? 8 : 12,
               font: { size: isMobile ? 10 : 11 },
               usePointStyle: true,
               pointStyle: 'circle',
-              boxWidth: isMobile ? 8 : 12
+              boxWidth: isMobile ? 8 : 10
             }
           },
           tooltip: {
@@ -3481,13 +3519,11 @@
             padding: 12,
             callbacks: {
               label: function(context) {
-                const value = context.raw;
-                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                const pct = ((value / total) * 100).toFixed(1);
+                const value = context.raw || 0;
                 if (usageViewMode === 'tokens') {
-                  return `${context.label}: ${formatTokens(value)} (${pct}%)`;
+                  return `${context.dataset.label}: ${formatTokens(value)}`;
                 } else {
-                  return `${context.label}: €${value.toFixed(2)} (${pct}%)`;
+                  return `${context.dataset.label}: €${value.toFixed(4)}`;
                 }
               }
             }
@@ -3496,8 +3532,8 @@
       };
 
       usageDistributionChart = new Chart(ctx, {
-        type: 'doughnut',
-        data: { labels: [], datasets: [{ data: [], backgroundColor: [], borderWidth: 0, hoverOffset: 8 }] },
+        type: 'line',
+        data: { labels: [], datasets: [] },
         options: chartOpts
       });
     }
@@ -3506,18 +3542,44 @@
       if (!usageDistributionChart) {
         initUsageChart();
       }
-      if (!usageDistributionChart || !usageData) return;
+      if (!usageDistributionChart || !usageData || !usageData.timeSeries) return;
 
-      const models = filterInternalModels(usageData.models)
-        .sort((a, b) => b[1].totalTokens - a[1].totalTokens);
+      // Get unique models from the data
+      const models = filterInternalModels(usageData.models);
+      const modelIds = models.map(([id]) => id);
+      
+      // Format dates for X-axis labels (e.g., "Feb 1")
+      const labels = usageData.timeSeries.map(entry => {
+        const date = new Date(entry.date);
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      });
 
-      const labels = models.map(([, d]) => d.emoji + ' ' + d.displayName);
-      const data = models.map(([, d]) => usageViewMode === 'tokens' ? d.totalTokens : d.costEur);
-      const colors = models.map(([, d]) => d.color);
+      // Create datasets for each model
+      const datasets = models.map(([modelId, modelInfo]) => {
+        const data = usageData.timeSeries.map(entry => {
+          const modelData = entry[modelId];
+          if (!modelData) return 0;
+          return usageViewMode === 'tokens' ? modelData.tokens : modelData.cost;
+        });
+
+        return {
+          label: modelInfo.displayName,
+          data: data,
+          borderColor: modelInfo.color,
+          backgroundColor: modelInfo.color + '20',
+          fill: true,
+          tension: 0.4,
+          borderWidth: 2,
+          pointRadius: 0,
+          pointHoverRadius: 5,
+          pointHoverBackgroundColor: modelInfo.color,
+          pointHoverBorderColor: '#fff',
+          pointHoverBorderWidth: 2
+        };
+      });
 
       usageDistributionChart.data.labels = labels;
-      usageDistributionChart.data.datasets[0].data = data;
-      usageDistributionChart.data.datasets[0].backgroundColor = colors;
+      usageDistributionChart.data.datasets = datasets;
       usageDistributionChart.update('none');
     }
 
