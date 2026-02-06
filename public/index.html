@@ -1178,6 +1178,415 @@
 
     .hidden { display: none !important; }
 
+    /* ==================== ENHANCED STATUS COMPONENT ==================== */
+    .enhanced-status-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .status-section-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-refresh-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: statusPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes statusPulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    .main-agent-status {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 20px;
+      background: var(--bg-secondary);
+      border-radius: 16px;
+      margin-bottom: 16px;
+    }
+
+    .agent-avatar {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      flex-shrink: 0;
+      transition: all 0.3s ease;
+    }
+
+    .agent-avatar.active {
+      background: var(--accent);
+      box-shadow: 0 0 30px var(--accent-glow), 0 0 60px var(--accent-glow);
+      animation: avatarPulse 2s ease-in-out infinite;
+    }
+
+    .agent-avatar.idle {
+      background: var(--inactive);
+      box-shadow: 0 0 15px var(--inactive-glow);
+    }
+
+    .agent-avatar.timedout {
+      background: #6b7280;
+      opacity: 0.6;
+    }
+
+    @keyframes avatarPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    .agent-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .agent-name {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .agent-status-badge {
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .agent-status-badge.active {
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--accent);
+    }
+
+    .agent-status-badge.idle {
+      background: rgba(107, 114, 128, 0.2);
+      color: #9ca3af;
+    }
+
+    .agent-status-badge.timedout {
+      background: rgba(107, 114, 128, 0.15);
+      color: #6b7280;
+    }
+
+    .agent-task {
+      font-size: 14px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 4px;
+    }
+
+    .agent-meta {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .agent-stats {
+      display: flex;
+      gap: 20px;
+      flex-shrink: 0;
+    }
+
+    .agent-stat {
+      text-align: center;
+    }
+
+    .agent-stat-value {
+      font-size: 20px;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent), #3b82f6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .agent-stat-label {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Sub-agents section */
+    .subagents-section {
+      margin-top: 16px;
+    }
+
+    .subagents-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .subagents-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .subagents-count {
+      font-size: 11px;
+      padding: 2px 8px;
+      background: var(--accent);
+      color: white;
+      border-radius: 10px;
+      font-weight: 600;
+    }
+
+    .subagents-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .subagent-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      background: var(--bg-secondary);
+      border-radius: 12px;
+      border-left: 3px solid var(--accent);
+      transition: all 0.2s;
+    }
+
+    .subagent-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .subagent-item.completed {
+      border-left-color: #6b7280;
+      opacity: 0.7;
+    }
+
+    .subagent-indicator {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .subagent-indicator.active {
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent-glow);
+      animation: subagentBlink 1.5s ease-in-out infinite;
+    }
+
+    .subagent-indicator.completed {
+      background: #6b7280;
+    }
+
+    @keyframes subagentBlink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .subagent-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .subagent-id {
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+
+    .subagent-task {
+      font-size: 13px;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .subagent-duration {
+      font-size: 11px;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    .subagent-outcome {
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+
+    .subagent-outcome.ok {
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--accent);
+    }
+
+    .subagent-outcome.error {
+      background: rgba(239, 68, 68, 0.2);
+      color: var(--danger);
+    }
+
+    .no-subagents {
+      text-align: center;
+      padding: 20px;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    /* Responsive enhanced status */
+    @media (max-width: 768px) {
+      .enhanced-status-card { padding: 16px; border-radius: 16px; }
+      
+      .main-agent-status {
+        flex-direction: column;
+        text-align: center;
+        padding: 16px;
+        gap: 12px;
+      }
+      
+      .agent-avatar { width: 56px; height: 56px; font-size: 28px; }
+      .agent-name { justify-content: center; font-size: 16px; }
+      .agent-task { white-space: normal; text-align: center; }
+      
+      .agent-stats {
+        width: 100%;
+        justify-content: center;
+        padding-top: 12px;
+        border-top: 1px solid var(--border);
+        margin-top: 4px;
+      }
+      
+      .subagents-list { max-height: 150px; }
+      
+      .subagent-item {
+        padding: 10px 12px;
+        gap: 10px;
+      }
+      
+      .subagent-task { font-size: 12px; }
+      .subagent-id { font-size: 10px; }
+    }
+
+    @media (max-width: 380px) {
+      .agent-avatar { width: 48px; height: 48px; font-size: 24px; }
+      .agent-stat-value { font-size: 18px; }
+      .subagent-item { padding: 8px 10px; }
+    }
+
+    /* ==================== CALENDAR PAGE STYLES ==================== */
+    .calendar-page-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px;
+    }
+
+    .calendar-page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .calendar-page-controls {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    /* Mobile portrait calendar optimizations */
+    @media (max-width: 768px) {
+      .calendar-page-card { padding: 16px; }
+      
+      .calendar-page-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+      }
+      
+      .calendar-page-controls {
+        justify-content: space-between;
+        width: 100%;
+      }
+      
+      /* Portrait calendar grid */
+      .calendar-grid-portrait {
+        gap: 2px;
+      }
+      
+      .calendar-grid-portrait .calendar-weekday {
+        font-size: 10px;
+        padding: 6px 2px;
+      }
+      
+      .calendar-grid-portrait .calendar-day {
+        min-height: 65px;
+        padding: 6px 4px;
+      }
+      
+      .calendar-grid-portrait .calendar-day-number {
+        font-size: 13px;
+        font-weight: 600;
+      }
+      
+      .calendar-grid-portrait .calendar-activity-text {
+        font-size: 10px;
+        padding: 2px 4px;
+      }
+      
+      .calendar-grid-portrait .calendar-activity-count {
+        font-size: 10px;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .calendar-grid-portrait .calendar-day {
+        min-height: 55px;
+        padding: 4px 3px;
+      }
+      
+      .calendar-grid-portrait .calendar-day-number {
+        font-size: 12px;
+      }
+      
+      .calendar-grid-portrait .calendar-activity-text {
+        font-size: 9px;
+      }
+    }
+
     /* ==================== API USAGE PAGE ==================== */
     .usage-period-toggle {
       display: flex;
@@ -2106,6 +2515,10 @@
           <span class="nav-item-icon">🏠</span>
           <span>Home</span>
         </div>
+        <div class="nav-item" data-page="calendar">
+          <span class="nav-item-icon">📅</span>
+          <span>Activity Calendar</span>
+        </div>
         <div class="nav-item" data-page="repositories">
           <span class="nav-item-icon">📦</span>
           <span>Repositories</span>
@@ -2148,31 +2561,53 @@
     <div class="page-container">
       <!-- Home Page -->
       <div class="page active" id="homePage">
-        <!-- Status Card -->
-        <div class="status-activity-card">
-          <div class="status-activity-top">
-            <div class="status-indicator" id="statusIndicator">
-              <span class="status-icon" id="statusIcon">💤</span>
-            </div>
-            <div class="status-info">
-              <div class="status-label">Current Status</div>
-              <div class="status-task" id="statusTask">Idle</div>
-              <div class="status-time" id="statusTime">No active tasks</div>
-            </div>
-            <div class="status-stats-right">
-              <div class="mini-stat">
-                <div class="mini-stat-value" id="statToday">0</div>
-                <div class="mini-stat-label">Today</div>
+        <!-- Enhanced Status Card -->
+        <div class="enhanced-status-card">
+          <div class="status-section-title">
+            <span>🔄 Live Status</span>
+            <div class="status-refresh-indicator" id="statusRefreshIndicator"></div>
+          </div>
+          
+          <!-- Main Agent (Jarvis) -->
+          <div class="main-agent-status">
+            <div class="agent-avatar idle" id="mainAgentAvatar">🦊</div>
+            <div class="agent-info">
+              <div class="agent-name">
+                <span>Jarvis</span>
+                <span class="agent-status-badge idle" id="mainAgentBadge">Idle</span>
               </div>
-              <div class="mini-stat">
-                <div class="mini-stat-value" id="statTotal">0</div>
-                <div class="mini-stat-label">Total</div>
+              <div class="agent-task" id="mainAgentTask">No active tasks</div>
+              <div class="agent-meta" id="mainAgentMeta">Waiting for work...</div>
+            </div>
+            <div class="agent-stats">
+              <div class="agent-stat">
+                <div class="agent-stat-value" id="statToday">0</div>
+                <div class="agent-stat-label">Today</div>
+              </div>
+              <div class="agent-stat">
+                <div class="agent-stat-value" id="statTotal">0</div>
+                <div class="agent-stat-label">Total</div>
               </div>
             </div>
           </div>
+          
+          <!-- Sub-agents Section -->
+          <div class="subagents-section" id="subagentsSection">
+            <div class="subagents-header">
+              <div class="subagents-title">
+                <span>🤖 Sub-Agents</span>
+                <span class="subagents-count" id="subagentsCount">0</span>
+              </div>
+            </div>
+            <div class="subagents-list" id="subagentsList">
+              <div class="no-subagents">No active sub-agents</div>
+            </div>
+          </div>
+        </div>
 
-          <!-- Charts Section -->
-          <div class="charts-section">
+        <!-- Charts Card -->
+        <div class="status-activity-card">
+          <div class="charts-section" style="margin-top: 0; padding-top: 0; border-top: none;">
             <div class="charts-header">
               <div class="chart-toggle">
                 <button class="chart-toggle-btn active" data-chart="hourly">Last 24h</button>
@@ -2193,25 +2628,6 @@
           </div>
         </div>
 
-        <!-- Calendar Card -->
-        <div class="calendar-card">
-          <div class="calendar-header">
-            <div class="calendar-title">📅 Activity Calendar</div>
-            <div style="display: flex; align-items: center; gap: 16px;">
-              <div class="calendar-toggle">
-                <button id="viewWeek" class="view-btn active">Week</button>
-                <button id="viewMonth" class="view-btn">Month</button>
-              </div>
-              <div class="calendar-nav">
-                <button id="prevPeriod">←</button>
-                <span class="calendar-month" id="calendarLabel">This Week</span>
-                <button id="nextPeriod">→</button>
-              </div>
-            </div>
-          </div>
-          <div class="calendar-grid" id="calendarGrid"></div>
-        </div>
-
         <!-- Activity Card -->
         <div class="activity-card">
           <div class="activity-title">🕐 Recent Activity</div>
@@ -2221,6 +2637,32 @@
               <p>No activity yet</p>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- Calendar Page -->
+      <div class="page" id="calendarPage">
+        <div class="page-header">
+          <h1 class="page-title">📅 Activity Calendar</h1>
+          <button class="refresh-btn" id="refreshCalendar">
+            <span class="refresh-icon">🔄</span> Refresh
+          </button>
+        </div>
+        <div class="calendar-page-card">
+          <div class="calendar-page-header">
+            <div class="calendar-toggle">
+              <button id="calPageViewWeek" class="view-btn active">Week</button>
+              <button id="calPageViewMonth" class="view-btn">Month</button>
+            </div>
+            <div class="calendar-page-controls">
+              <div class="calendar-nav">
+                <button id="calPagePrevPeriod">←</button>
+                <span class="calendar-month" id="calPageLabel">This Week</span>
+                <button id="calPageNextPeriod">→</button>
+              </div>
+            </div>
+          </div>
+          <div class="calendar-grid calendar-grid-portrait" id="calPageGrid"></div>
         </div>
       </div>
 
@@ -2524,7 +2966,8 @@
       initChartToggle();
       renderCalendar();
       loadData();
-      setInterval(loadData, 5000);
+      // Poll status every 10 seconds for real-time updates
+      setInterval(loadData, 10000);
       startChangeDetection();
     }
 
@@ -2561,10 +3004,11 @@
       document.getElementById(`${pageName}Page`).classList.add('active');
 
       // Update header title
-      const titles = { home: 'Dashboard', repositories: 'Repositories', markdowns: 'Markdown Files', skills: 'Skills', newsletters: 'Newsletters', usage: 'API Usage' };
+      const titles = { home: 'Dashboard', calendar: 'Activity Calendar', repositories: 'Repositories', markdowns: 'Markdown Files', skills: 'Skills', newsletters: 'Newsletters', usage: 'API Usage' };
       document.getElementById('headerPageTitle').textContent = titles[pageName] || 'Dashboard';
 
       // Load page content
+      if (pageName === 'calendar') initCalendarPage();
       if (pageName === 'repositories') loadRepositoriesPage();
       if (pageName === 'markdowns') loadMarkdowns();
       if (pageName === 'skills') loadSkills();
@@ -2610,48 +3054,107 @@
     }
 
     // ==================== DATA LOADING ====================
+    let statusPollInterval = null;
+
     async function loadData() {
       try {
-        const [statusRes, statsRes, activitiesRes] = await Promise.all([
-          fetch('/api/status', { credentials: 'same-origin' }),
+        const [enhancedStatusRes, statsRes, activitiesRes] = await Promise.all([
+          fetch('/api/enhanced-status', { credentials: 'same-origin' }),
           fetch('/api/stats', { credentials: 'same-origin' }),
           fetch('/api/activities?hours=720', { credentials: 'same-origin' })
         ]);
 
-        if (statusRes.status === 401) { location.reload(); return; }
+        if (enhancedStatusRes.status === 401) { location.reload(); return; }
 
-        const status = await statusRes.json();
+        const enhancedStatus = await enhancedStatusRes.json();
         const stats = await statsRes.json();
         allActivities = await activitiesRes.json();
 
-        updateStatus(status);
+        updateEnhancedStatus(enhancedStatus);
         updateStats(stats);
         updateCharts(stats);
         updateActivityList(allActivities);
-        renderCalendar();
+        
+        // Update calendar page if visible
+        if (document.getElementById('calendarPage').classList.contains('active')) {
+          renderCalendarPage();
+        }
       } catch (e) {
         console.error('Load failed:', e);
       }
     }
 
-    function updateStatus(status) {
-      const indicator = document.getElementById('statusIndicator');
-      const icon = document.getElementById('statusIcon');
-      const task = document.getElementById('statusTask');
-      const time = document.getElementById('statusTime');
-
-      if (status.active) {
-        indicator.className = 'status-indicator active';
-        icon.textContent = '⚡';
-        task.textContent = status.task || 'Working...';
-        const elapsed = Math.round((Date.now() - status.startedAt) / 60000);
-        time.textContent = `Active for ${elapsed} minute${elapsed !== 1 ? 's' : ''}`;
+    function updateEnhancedStatus(data) {
+      const { main, subagents } = data;
+      
+      // Update main agent status
+      const avatar = document.getElementById('mainAgentAvatar');
+      const badge = document.getElementById('mainAgentBadge');
+      const task = document.getElementById('mainAgentTask');
+      const meta = document.getElementById('mainAgentMeta');
+      
+      if (main.active) {
+        avatar.className = 'agent-avatar active';
+        badge.className = 'agent-status-badge active';
+        badge.textContent = 'Active';
+        task.textContent = main.task || 'Working...';
+        const elapsed = Math.round((Date.now() - main.startedAt) / 60000);
+        meta.textContent = `Working for ${elapsed} minute${elapsed !== 1 ? 's' : ''}`;
+      } else if (main.timedOut) {
+        avatar.className = 'agent-avatar timedout';
+        badge.className = 'agent-status-badge timedout';
+        badge.textContent = 'Stale';
+        task.textContent = main.task || 'Last task';
+        meta.textContent = 'Status not updated recently';
       } else {
-        indicator.className = 'status-indicator inactive';
-        icon.textContent = '💤';
-        task.textContent = 'Idle';
-        time.textContent = 'No active tasks';
+        avatar.className = 'agent-avatar idle';
+        badge.className = 'agent-status-badge idle';
+        badge.textContent = 'Idle';
+        task.textContent = 'No active tasks';
+        meta.textContent = 'Waiting for work...';
       }
+      
+      // Update sub-agents
+      const countEl = document.getElementById('subagentsCount');
+      const listEl = document.getElementById('subagentsList');
+      
+      const activeSubagents = subagents.filter(s => s.status === 'active');
+      const recentSubagents = subagents.filter(s => s.status === 'completed').slice(0, 3);
+      const allDisplayed = [...activeSubagents, ...recentSubagents];
+      
+      countEl.textContent = activeSubagents.length;
+      
+      if (allDisplayed.length === 0) {
+        listEl.innerHTML = '<div class="no-subagents">No active sub-agents</div>';
+      } else {
+        listEl.innerHTML = allDisplayed.map(agent => {
+          const durationMs = agent.duration || 0;
+          const durationMin = Math.round(durationMs / 60000);
+          const durationText = durationMin > 0 ? `${durationMin}m` : '<1m';
+          
+          const isActive = agent.status === 'active';
+          const outcomeHtml = !isActive && agent.outcome 
+            ? `<span class="subagent-outcome ${agent.outcome === 'ok' ? 'ok' : 'error'}">${agent.outcome === 'ok' ? '✓' : '✗'}</span>`
+            : '';
+          
+          return `
+            <div class="subagent-item ${isActive ? '' : 'completed'}">
+              <div class="subagent-indicator ${isActive ? 'active' : 'completed'}"></div>
+              <div class="subagent-info">
+                <div class="subagent-id">🤖 ${agent.id}</div>
+                <div class="subagent-task">${esc(agent.task)}</div>
+              </div>
+              <div class="subagent-duration">${durationText}</div>
+              ${outcomeHtml}
+            </div>
+          `;
+        }).join('');
+      }
+      
+      // Pulse the refresh indicator
+      const refreshIndicator = document.getElementById('statusRefreshIndicator');
+      refreshIndicator.style.animation = 'none';
+      setTimeout(() => refreshIndicator.style.animation = '', 10);
     }
 
     function updateStats(stats) {
@@ -2918,6 +3421,175 @@
       document.getElementById('viewWeek').classList.remove('active');
       renderCalendar();
     });
+
+    // ==================== CALENDAR PAGE ====================
+    let calPageView = 'week';
+    let calPageWeekStart = getWeekStart(new Date());
+    let calPageMonth = new Date();
+    let calPageInitialized = false;
+
+    function initCalendarPage() {
+      if (!calPageInitialized) {
+        // Set up event listeners for calendar page controls
+        document.getElementById('calPageViewWeek').addEventListener('click', () => {
+          calPageView = 'week';
+          document.getElementById('calPageViewWeek').classList.add('active');
+          document.getElementById('calPageViewMonth').classList.remove('active');
+          renderCalendarPage();
+        });
+
+        document.getElementById('calPageViewMonth').addEventListener('click', () => {
+          calPageView = 'month';
+          document.getElementById('calPageViewMonth').classList.add('active');
+          document.getElementById('calPageViewWeek').classList.remove('active');
+          renderCalendarPage();
+        });
+
+        document.getElementById('calPagePrevPeriod').addEventListener('click', () => {
+          if (calPageView === 'week') {
+            calPageWeekStart.setDate(calPageWeekStart.getDate() - 7);
+          } else {
+            calPageMonth.setMonth(calPageMonth.getMonth() - 1);
+          }
+          renderCalendarPage();
+        });
+
+        document.getElementById('calPageNextPeriod').addEventListener('click', () => {
+          if (calPageView === 'week') {
+            calPageWeekStart.setDate(calPageWeekStart.getDate() + 7);
+          } else {
+            calPageMonth.setMonth(calPageMonth.getMonth() + 1);
+          }
+          renderCalendarPage();
+        });
+
+        document.getElementById('refreshCalendar').addEventListener('click', () => {
+          const btn = document.getElementById('refreshCalendar');
+          btn.classList.add('loading');
+          loadData().finally(() => btn.classList.remove('loading'));
+        });
+
+        calPageInitialized = true;
+      }
+      renderCalendarPage();
+    }
+
+    function renderCalendarPage() {
+      if (calPageView === 'week') {
+        renderCalPageWeek();
+      } else {
+        renderCalPageMonth();
+      }
+    }
+
+    function renderCalPageWeek() {
+      const grid = document.getElementById('calPageGrid');
+      const label = document.getElementById('calPageLabel');
+      const weekEnd = new Date(calPageWeekStart);
+      weekEnd.setDate(weekEnd.getDate() + 6);
+      const today = new Date();
+      today.setHours(0,0,0,0);
+
+      const thisWeekStart = getWeekStart(new Date());
+      label.textContent = calPageWeekStart.getTime() === thisWeekStart.getTime() ? 'This Week' :
+        `${calPageWeekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+
+      let html = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d => `<div class="calendar-weekday">${d}</div>`).join('');
+
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(calPageWeekStart);
+        date.setDate(date.getDate() + i);
+        const dateStr = date.toDateString();
+        const isToday = date.getTime() === today.getTime();
+        const dayActivities = allActivities.filter(a => new Date(a.timestamp).toDateString() === dateStr).sort((a,b) => b.timestamp - a.timestamp);
+        const hasActivity = dayActivities.length > 0;
+        const classes = ['calendar-day'];
+        if (isToday) classes.push('today');
+        if (hasActivity) classes.push('has-activity');
+
+        let activityHtml = '';
+        if (hasActivity) {
+          const show = dayActivities.slice(0, 4);
+          show.forEach(a => { activityHtml += `<div class="calendar-activity-text">${esc(a.task || 'Task')}</div>`; });
+          if (dayActivities.length > 4) activityHtml += `<div class="calendar-activity-count">+${dayActivities.length - 4} more</div>`;
+        }
+
+        html += `<div class="${classes.join(' ')}" data-date="${date.toISOString()}"><div class="calendar-day-number">${date.getDate()}</div><div class="calendar-day-activities">${activityHtml}</div></div>`;
+      }
+      grid.innerHTML = html;
+      attachCalPageTooltipEvents();
+    }
+
+    function renderCalPageMonth() {
+      const grid = document.getElementById('calPageGrid');
+      const label = document.getElementById('calPageLabel');
+
+      const year = calPageMonth.getFullYear();
+      const month = calPageMonth.getMonth();
+
+      label.textContent = calPageMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0);
+      const startDay = firstDay.getDay() || 7;
+
+      const today = new Date();
+      today.setHours(0,0,0,0);
+
+      let html = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d => `<div class="calendar-weekday">${d}</div>`).join('');
+
+      const prevMonthDate = new Date(year, month, 0);
+      for (let i = startDay - 1; i > 0; i--) {
+        const day = prevMonthDate.getDate() - i + 1;
+        html += `<div class="calendar-day other-month"><div class="calendar-day-number">${day}</div></div>`;
+      }
+
+      for (let day = 1; day <= lastDay.getDate(); day++) {
+        const date = new Date(year, month, day);
+        const dateStr = date.toDateString();
+        const isToday = date.getTime() === today.getTime();
+
+        const dayActivities = allActivities.filter(a => new Date(a.timestamp).toDateString() === dateStr);
+        const hasActivity = dayActivities.length > 0;
+
+        const classes = ['calendar-day'];
+        if (isToday) classes.push('today');
+        if (hasActivity) classes.push('has-activity');
+
+        let activityHtml = '';
+        if (hasActivity) {
+          const dots = Math.min(dayActivities.length, 3);
+          for (let j = 0; j < dots; j++) {
+            activityHtml += '<div class="calendar-activity-dot"></div>';
+          }
+          if (dayActivities.length > 3) {
+            activityHtml += `<div class="calendar-activity-count">+${dayActivities.length - 3}</div>`;
+          }
+        }
+
+        html += `<div class="${classes.join(' ')}" data-date="${date.toISOString()}"><div class="calendar-day-number">${day}</div><div class="calendar-day-activities">${activityHtml}</div></div>`;
+      }
+
+      const remaining = 42 - (startDay - 1 + lastDay.getDate());
+      for (let day = 1; day <= remaining && remaining < 7; day++) {
+        html += `<div class="calendar-day other-month"><div class="calendar-day-number">${day}</div></div>`;
+      }
+
+      grid.innerHTML = html;
+      attachCalPageTooltipEvents();
+    }
+
+    function attachCalPageTooltipEvents() {
+      const isMobile = window.innerWidth < 768;
+      document.querySelectorAll('#calPageGrid .calendar-day.has-activity').forEach(el => {
+        if (isMobile) {
+          el.addEventListener('click', (e) => { e.stopPropagation(); showTooltip(e); });
+        } else {
+          el.addEventListener('mouseenter', showTooltip);
+          el.addEventListener('mouseleave', hideTooltip);
+        }
+      });
+    }
 
     // ==================== MARKDOWN FILES ====================
     let markdownFiles = [];

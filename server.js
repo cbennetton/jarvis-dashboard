@@ -856,6 +856,93 @@ app.delete('/api/newsletters/:id', requireAuth, (req, res) => {
 
 // ==================== END NEWSLETTERS API ====================
 
+// ==================== ENHANCED STATUS API (with sub-agents) ====================
+const SUBAGENTS_FILE = path.join(process.env.HOME, '.openclaw', 'subagents', 'runs.json');
+
+function loadSubagentRuns() {
+  try {
+    if (fs.existsSync(SUBAGENTS_FILE)) {
+      return JSON.parse(fs.readFileSync(SUBAGENTS_FILE, 'utf8'));
+    }
+  } catch (e) {
+    console.error('Subagents load error:', e);
+  }
+  return { runs: {} };
+}
+
+// GET /api/enhanced-status - Get main status + active sub-agents
+app.get('/api/enhanced-status', requireAuth, (req, res) => {
+  try {
+    const TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes
+    const now = Date.now();
+    
+    // Get main Jarvis status
+    const mainStatus = { ...db.currentStatus };
+    const lastUpdate = mainStatus.updatedAt || mainStatus.startedAt;
+    if (mainStatus.active && lastUpdate && (now - lastUpdate > TIMEOUT_MS)) {
+      mainStatus.active = false;
+      mainStatus.timedOut = true;
+    }
+    
+    // Get sub-agent runs
+    const subagentData = loadSubagentRuns();
+    const subagents = [];
+    
+    // Process runs to find active/recent sub-agents
+    for (const [runId, run] of Object.entries(subagentData.runs || {})) {
+      const isRunning = !run.endedAt;
+      const isRecent = run.endedAt && (now - run.endedAt < 5 * 60 * 1000); // Completed in last 5 min
+      
+      if (isRunning || isRecent) {
+        // Extract a short name/ID for the sub-agent
+        const childKey = run.childSessionKey || '';
+        const shortId = childKey.split(':').pop().substring(0, 8);
+        
+        // Truncate task for display
+        const taskLines = (run.task || '').split('\n');
+        const taskSummary = taskLines[0].substring(0, 100) + (taskLines[0].length > 100 ? '...' : '');
+        
+        subagents.push({
+          id: shortId,
+          runId: run.runId,
+          task: taskSummary,
+          fullTask: run.task,
+          status: isRunning ? 'active' : 'completed',
+          startedAt: run.startedAt,
+          endedAt: run.endedAt,
+          duration: run.endedAt 
+            ? run.endedAt - run.startedAt 
+            : now - run.startedAt,
+          outcome: run.outcome?.status || null
+        });
+      }
+    }
+    
+    // Sort: active first, then by start time (most recent first)
+    subagents.sort((a, b) => {
+      if (a.status === 'active' && b.status !== 'active') return -1;
+      if (a.status !== 'active' && b.status === 'active') return 1;
+      return (b.startedAt || 0) - (a.startedAt || 0);
+    });
+    
+    res.json({
+      main: {
+        name: 'Jarvis',
+        active: mainStatus.active,
+        task: mainStatus.task,
+        startedAt: mainStatus.startedAt,
+        updatedAt: mainStatus.updatedAt,
+        timedOut: mainStatus.timedOut || false
+      },
+      subagents: subagents,
+      timestamp: now
+    });
+  } catch (e) {
+    console.error('Enhanced status error:', e);
+    res.status(500).json({ error: 'Failed to get enhanced status' });
+  }
+});
+
 // Internal API
 const API_KEY = 'jarvis-secret-key-xK9mP2nQ7vL4';
 app.post('/api/internal/status', (req, res) => {
