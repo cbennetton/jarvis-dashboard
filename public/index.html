@@ -1243,10 +1243,40 @@
     .view-toggle-btn:hover { color: var(--text-secondary); }
     .view-toggle-btn.active { background: var(--accent); color: white; }
 
+    /* Usage Distribution Chart */
+    .usage-chart-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .usage-chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .usage-chart-title {
+      font-size: 16px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .usage-chart-container {
+      height: 200px;
+      position: relative;
+    }
+
     .usage-models-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 20px;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
       margin-bottom: 24px;
     }
 
@@ -1254,12 +1284,14 @@
       background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: 16px;
-      padding: 24px;
+      padding: 16px;
       transition: all 0.2s;
       position: relative;
       overflow: hidden;
+      cursor: pointer;
     }
-    .usage-model-card:hover { border-color: rgba(255,255,255,0.15); transform: translateY(-2px); }
+    .usage-model-card:hover { border-color: rgba(255,255,255,0.15); }
+    .usage-model-card.expanded { cursor: default; }
 
     .usage-model-card::before {
       content: '';
@@ -1267,7 +1299,7 @@
       top: 0;
       left: 0;
       right: 0;
-      height: 4px;
+      height: 3px;
       background: var(--model-color, var(--accent));
     }
 
@@ -1275,49 +1307,74 @@
       display: flex;
       align-items: center;
       gap: 12px;
-      margin-bottom: 16px;
     }
 
-    .usage-model-emoji { font-size: 32px; }
+    .usage-model-emoji { font-size: 28px; flex-shrink: 0; }
 
     .usage-model-info { flex: 1; min-width: 0; }
-    .usage-model-name { font-size: 16px; font-weight: 600; margin-bottom: 2px; }
-    .usage-model-calls { font-size: 12px; color: var(--text-muted); }
+    .usage-model-name { font-size: 14px; font-weight: 600; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .usage-model-calls { font-size: 11px; color: var(--text-muted); }
+
+    .usage-model-compact-stats {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .usage-model-compact-value {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
 
     .usage-model-percentage {
       background: var(--bg-secondary);
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 13px;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 11px;
       font-weight: 600;
       color: var(--accent);
     }
 
-    .usage-model-main {
+    .usage-model-progress {
+      margin-top: 12px;
+      height: 6px;
+      background: var(--bg-secondary);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .usage-model-progress-fill {
+      height: 100%;
+      background: var(--model-color, var(--accent));
+      border-radius: 3px;
+      transition: width 0.5s ease;
+    }
+
+    .usage-model-expand-hint {
+      margin-top: 8px;
       text-align: center;
-      padding: 20px 0;
-      border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-      margin-bottom: 16px;
-    }
-
-    .usage-model-value {
-      font-size: 32px;
-      font-weight: 700;
-      margin-bottom: 4px;
-    }
-
-    .usage-model-label {
-      font-size: 12px;
+      font-size: 11px;
       color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+      opacity: 0;
+      transition: opacity 0.2s;
     }
+    .usage-model-card:hover .usage-model-expand-hint { opacity: 1; }
+    .usage-model-card.expanded .usage-model-expand-hint { display: none; }
+
+    .usage-model-details {
+      display: none;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+    .usage-model-card.expanded .usage-model-details { display: block; }
 
     .usage-model-breakdown {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
+      gap: 10px;
     }
 
     .usage-breakdown-item {
@@ -1339,6 +1396,20 @@
       font-weight: 600;
       color: var(--text-primary);
     }
+
+    .usage-model-collapse-btn {
+      margin-top: 12px;
+      width: 100%;
+      padding: 8px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-muted);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .usage-model-collapse-btn:hover { background: var(--bg-secondary); color: var(--text-primary); }
 
     .usage-breakdown-card {
       background: var(--bg-card);
@@ -1435,14 +1506,19 @@
 
       .view-toggle-btn { flex: 1; text-align: center; padding: 10px 12px; font-size: 13px; }
 
+      .usage-chart-card { padding: 16px; }
+      .usage-chart-header { flex-direction: column; gap: 12px; align-items: stretch; }
+      .usage-chart-container { height: 180px; }
+
       .usage-models-grid {
         grid-template-columns: 1fr;
-        gap: 16px;
+        gap: 12px;
       }
 
-      .usage-model-card { padding: 20px; }
-      .usage-model-emoji { font-size: 28px; }
-      .usage-model-value { font-size: 26px; }
+      .usage-model-card { padding: 14px; }
+      .usage-model-emoji { font-size: 24px; }
+      .usage-model-name { font-size: 13px; }
+      .usage-model-compact-value { font-size: 14px; }
 
       .page-header-actions {
         flex-direction: column;
@@ -1474,7 +1550,8 @@
     @media (max-width: 380px) {
       .usage-summary-icon { width: 48px; height: 48px; font-size: 22px; }
       .usage-summary-value { font-size: 20px; }
-      .usage-model-value { font-size: 22px; }
+      .usage-model-emoji { font-size: 22px; }
+      .usage-chart-container { height: 160px; }
     }
 
     /* ==================== NEWSLETTERS PAGE ==================== */
@@ -2089,6 +2166,16 @@
           <div class="usage-view-toggle">
             <button class="view-toggle-btn active" data-view="tokens">🔢 Tokens</button>
             <button class="view-toggle-btn" data-view="cost">💶 Cost (€)</button>
+          </div>
+        </div>
+
+        <!-- Usage Distribution Chart -->
+        <div class="usage-chart-card">
+          <div class="usage-chart-header">
+            <div class="usage-chart-title">📊 Model Distribution</div>
+          </div>
+          <div class="usage-chart-container">
+            <canvas id="usageDistributionChart"></canvas>
           </div>
         </div>
 
@@ -3302,6 +3389,7 @@
     let usageData = null;
     let usageViewMode = 'tokens'; // 'tokens' or 'cost'
     let usagePeriodDays = 7;
+    let usageDistributionChart = null;
 
     async function loadUsage() {
       const btn = document.getElementById('refreshUsage');
@@ -3318,6 +3406,16 @@
       } finally {
         btn.classList.remove('loading');
       }
+    }
+
+    function filterInternalModels(models) {
+      // Filter out internal/test entries like delivery mirror, test, debug, etc.
+      const internalPatterns = ['delivery', 'mirror', 'test', 'debug', 'internal', '__'];
+      return Object.entries(models).filter(([modelId, data]) => {
+        const idLower = modelId.toLowerCase();
+        const nameLower = (data.displayName || '').toLowerCase();
+        return !internalPatterns.some(p => idLower.includes(p) || nameLower.includes(p));
+      });
     }
 
     function renderUsage() {
@@ -3340,6 +3438,9 @@
       totalCalls.textContent = usageData.totals.calls.toLocaleString();
       sessionsCount.textContent = usageData.sessionsProcessed.toLocaleString();
 
+      // Render distribution chart
+      renderUsageChart();
+
       // Render model cards
       renderModelCards();
       
@@ -3347,9 +3448,82 @@
       renderUsageBreakdown();
     }
 
+    function initUsageChart() {
+      const ctx = document.getElementById('usageDistributionChart');
+      if (!ctx) return;
+
+      const isMobile = window.innerWidth < 768;
+
+      const chartOpts = {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '55%',
+        plugins: {
+          legend: {
+            display: true,
+            position: isMobile ? 'bottom' : 'right',
+            labels: {
+              color: 'rgba(255,255,255,0.7)',
+              padding: isMobile ? 8 : 12,
+              font: { size: isMobile ? 10 : 11 },
+              usePointStyle: true,
+              pointStyle: 'circle',
+              boxWidth: isMobile ? 8 : 12
+            }
+          },
+          tooltip: {
+            backgroundColor: 'rgba(18, 18, 26, 0.95)',
+            titleColor: '#fff',
+            bodyColor: 'rgba(255,255,255,0.8)',
+            borderColor: 'rgba(255,255,255,0.1)',
+            borderWidth: 1,
+            cornerRadius: 8,
+            padding: 12,
+            callbacks: {
+              label: function(context) {
+                const value = context.raw;
+                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                const pct = ((value / total) * 100).toFixed(1);
+                if (usageViewMode === 'tokens') {
+                  return `${context.label}: ${formatTokens(value)} (${pct}%)`;
+                } else {
+                  return `${context.label}: €${value.toFixed(2)} (${pct}%)`;
+                }
+              }
+            }
+          }
+        }
+      };
+
+      usageDistributionChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: { labels: [], datasets: [{ data: [], backgroundColor: [], borderWidth: 0, hoverOffset: 8 }] },
+        options: chartOpts
+      });
+    }
+
+    function renderUsageChart() {
+      if (!usageDistributionChart) {
+        initUsageChart();
+      }
+      if (!usageDistributionChart || !usageData) return;
+
+      const models = filterInternalModels(usageData.models)
+        .sort((a, b) => b[1].totalTokens - a[1].totalTokens);
+
+      const labels = models.map(([, d]) => d.emoji + ' ' + d.displayName);
+      const data = models.map(([, d]) => usageViewMode === 'tokens' ? d.totalTokens : d.costEur);
+      const colors = models.map(([, d]) => d.color);
+
+      usageDistributionChart.data.labels = labels;
+      usageDistributionChart.data.datasets[0].data = data;
+      usageDistributionChart.data.datasets[0].backgroundColor = colors;
+      usageDistributionChart.update('none');
+    }
+
     function renderModelCards() {
       const grid = document.getElementById('usageModelsGrid');
-      const models = Object.entries(usageData.models)
+      const models = filterInternalModels(usageData.models)
         .sort((a, b) => b[1].totalTokens - a[1].totalTokens);
 
       if (!models.length) {
@@ -3361,55 +3535,76 @@
         return;
       }
 
+      const maxValue = usageViewMode === 'tokens'
+        ? Math.max(...models.map(([, d]) => d.totalTokens))
+        : Math.max(...models.map(([, d]) => d.costEur));
+
       grid.innerHTML = models.map(([modelId, data]) => {
-        const mainValue = usageViewMode === 'tokens' 
-          ? formatTokens(data.totalTokens)
+        const compactValue = usageViewMode === 'tokens' 
+          ? formatTokensShort(data.totalTokens)
           : `€${data.costEur.toFixed(2)}`;
-        const mainLabel = usageViewMode === 'tokens' ? 'Total Tokens' : 'Total Cost';
         const percentage = usageViewMode === 'tokens'
           ? data.percentage.toFixed(1)
           : data.costPercentage.toFixed(1);
+        const progressWidth = usageViewMode === 'tokens'
+          ? (maxValue > 0 ? (data.totalTokens / maxValue * 100) : 0)
+          : (maxValue > 0 ? (data.costEur / maxValue * 100) : 0);
 
         return `
-          <div class="usage-model-card" style="--model-color: ${data.color}">
+          <div class="usage-model-card" style="--model-color: ${data.color}" data-model="${modelId}" onclick="toggleModelCard(this)">
             <div class="usage-model-header">
               <div class="usage-model-emoji">${data.emoji}</div>
               <div class="usage-model-info">
                 <div class="usage-model-name">${esc(data.displayName)}</div>
-                <div class="usage-model-calls">${data.calls.toLocaleString()} API calls</div>
+                <div class="usage-model-calls">${data.calls.toLocaleString()} calls</div>
               </div>
-              <div class="usage-model-percentage">${percentage}%</div>
+              <div class="usage-model-compact-stats">
+                <div class="usage-model-compact-value">${compactValue}</div>
+                <div class="usage-model-percentage">${percentage}%</div>
+              </div>
             </div>
-            <div class="usage-model-main">
-              <div class="usage-model-value">${mainValue}</div>
-              <div class="usage-model-label">${mainLabel}</div>
+            <div class="usage-model-progress">
+              <div class="usage-model-progress-fill" style="width: ${progressWidth}%"></div>
             </div>
-            <div class="usage-model-breakdown">
-              <div class="usage-breakdown-item">
-                <div class="usage-breakdown-item-label">Input</div>
-                <div class="usage-breakdown-item-value">${formatTokensShort(data.input)}</div>
+            <div class="usage-model-expand-hint">Click to expand</div>
+            <div class="usage-model-details">
+              <div class="usage-model-breakdown">
+                <div class="usage-breakdown-item">
+                  <div class="usage-breakdown-item-label">Input</div>
+                  <div class="usage-breakdown-item-value">${formatTokensShort(data.input)}</div>
+                </div>
+                <div class="usage-breakdown-item">
+                  <div class="usage-breakdown-item-label">Output</div>
+                  <div class="usage-breakdown-item-value">${formatTokensShort(data.output)}</div>
+                </div>
+                <div class="usage-breakdown-item">
+                  <div class="usage-breakdown-item-label">Cache Read</div>
+                  <div class="usage-breakdown-item-value">${formatTokensShort(data.cacheRead)}</div>
+                </div>
+                <div class="usage-breakdown-item">
+                  <div class="usage-breakdown-item-label">Cache Write</div>
+                  <div class="usage-breakdown-item-value">${formatTokensShort(data.cacheWrite)}</div>
+                </div>
               </div>
-              <div class="usage-breakdown-item">
-                <div class="usage-breakdown-item-label">Output</div>
-                <div class="usage-breakdown-item-value">${formatTokensShort(data.output)}</div>
-              </div>
-              <div class="usage-breakdown-item">
-                <div class="usage-breakdown-item-label">Cache Read</div>
-                <div class="usage-breakdown-item-value">${formatTokensShort(data.cacheRead)}</div>
-              </div>
-              <div class="usage-breakdown-item">
-                <div class="usage-breakdown-item-label">Cache Write</div>
-                <div class="usage-breakdown-item-value">${formatTokensShort(data.cacheWrite)}</div>
-              </div>
+              <button class="usage-model-collapse-btn" onclick="event.stopPropagation(); collapseModelCard(this.closest('.usage-model-card'))">▲ Collapse</button>
             </div>
           </div>
         `;
       }).join('');
     }
 
+    function toggleModelCard(card) {
+      if (card.classList.contains('expanded')) return; // Let the collapse button handle it
+      card.classList.add('expanded');
+    }
+
+    function collapseModelCard(card) {
+      card.classList.remove('expanded');
+    }
+
     function renderUsageBreakdown() {
       const container = document.getElementById('usageBreakdown');
-      const models = Object.entries(usageData.models)
+      const models = filterInternalModels(usageData.models)
         .sort((a, b) => b[1].totalTokens - a[1].totalTokens);
 
       if (!models.length) {
@@ -3466,13 +3661,13 @@
       });
     });
 
-    // View toggle
+    // View toggle - also updates chart
     document.querySelectorAll('.view-toggle-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.view-toggle-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         usageViewMode = btn.dataset.view;
-        renderUsage();
+        renderUsage(); // This now updates chart too
       });
     });
 
