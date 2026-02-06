@@ -1015,6 +1015,15 @@
       .page-title { font-size: 20px; }
       .refresh-btn { align-self: flex-end; }
       
+      /* Calendar page controls mobile */
+      #calendarPage .page-header > div { 
+        flex-direction: column; 
+        gap: 12px; 
+        width: 100%; 
+      }
+      #calendarPage .calendar-toggle { width: 100%; justify-content: center; }
+      #calendarPage .calendar-nav { width: 100%; justify-content: center; }
+      
       /* Calendar mobile portrait */
       .calendar-card { padding: 16px; }
       .calendar-header { flex-direction: column; gap: 12px; align-items: stretch; }
@@ -2106,6 +2115,10 @@
           <span class="nav-item-icon">🏠</span>
           <span>Home</span>
         </div>
+        <div class="nav-item" data-page="calendar">
+          <span class="nav-item-icon">📅</span>
+          <span>Activity Calendar</span>
+        </div>
         <div class="nav-item" data-page="repositories">
           <span class="nav-item-icon">📦</span>
           <span>Repositories</span>
@@ -2193,25 +2206,6 @@
           </div>
         </div>
 
-        <!-- Calendar Card -->
-        <div class="calendar-card">
-          <div class="calendar-header">
-            <div class="calendar-title">📅 Activity Calendar</div>
-            <div style="display: flex; align-items: center; gap: 16px;">
-              <div class="calendar-toggle">
-                <button id="viewWeek" class="view-btn active">Week</button>
-                <button id="viewMonth" class="view-btn">Month</button>
-              </div>
-              <div class="calendar-nav">
-                <button id="prevPeriod">←</button>
-                <span class="calendar-month" id="calendarLabel">This Week</span>
-                <button id="nextPeriod">→</button>
-              </div>
-            </div>
-          </div>
-          <div class="calendar-grid" id="calendarGrid"></div>
-        </div>
-
         <!-- Activity Card -->
         <div class="activity-card">
           <div class="activity-title">🕐 Recent Activity</div>
@@ -2221,6 +2215,27 @@
               <p>No activity yet</p>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- Calendar Page -->
+      <div class="page" id="calendarPage">
+        <div class="page-header">
+          <h1 class="page-title">📅 Activity Calendar</h1>
+          <div style="display: flex; align-items: center; gap: 16px;">
+            <div class="calendar-toggle">
+              <button id="viewWeek" class="view-btn active">Week</button>
+              <button id="viewMonth" class="view-btn">Month</button>
+            </div>
+            <div class="calendar-nav">
+              <button id="prevPeriod">←</button>
+              <span class="calendar-month" id="calendarLabel">This Week</span>
+              <button id="nextPeriod">→</button>
+            </div>
+          </div>
+        </div>
+        <div class="calendar-card">
+          <div class="calendar-grid" id="calendarGrid"></div>
         </div>
       </div>
 
@@ -2561,10 +2576,11 @@
       document.getElementById(`${pageName}Page`).classList.add('active');
 
       // Update header title
-      const titles = { home: 'Dashboard', repositories: 'Repositories', markdowns: 'Markdown Files', skills: 'Skills', newsletters: 'Newsletters', usage: 'API Usage' };
+      const titles = { home: 'Dashboard', calendar: 'Activity Calendar', repositories: 'Repositories', markdowns: 'Markdown Files', skills: 'Skills', newsletters: 'Newsletters', usage: 'API Usage' };
       document.getElementById('headerPageTitle').textContent = titles[pageName] || 'Dashboard';
 
       // Load page content
+      if (pageName === 'calendar') renderCalendar();
       if (pageName === 'repositories') loadRepositoriesPage();
       if (pageName === 'markdowns') loadMarkdowns();
       if (pageName === 'skills') loadSkills();
