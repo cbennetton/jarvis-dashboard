@@ -237,7 +237,7 @@ app.post('/api/internal/chat-reply', (req, res) => {
 
 // ==================== MARKDOWN & SKILLS API ====================
 const WORKSPACE_DIR = path.join(process.env.HOME, '.openclaw', 'workspace');
-const SKILLS_DIR = path.join(process.env.HOME, '.openclaw', 'skills');
+const SKILLS_DIR = '/home/ubuntu/.npm-global/lib/node_modules/openclaw/skills';
 
 // Cache for file modification times to support change detection
 let fileModTimes = {};
@@ -383,6 +383,56 @@ app.get('/api/markdown', requireAuth, (req, res) => {
   } catch (e) {
     console.error('Markdown API error:', e);
     res.status(500).json({ error: 'Failed to read file' });
+  }
+});
+
+// Save markdown content
+app.post('/api/markdown/save', requireAuth, (req, res) => {
+  try {
+    const { path: requestedPath, content } = req.body;
+    
+    if (!requestedPath) {
+      return res.status(400).json({ error: 'Path parameter required' });
+    }
+    
+    if (content === undefined || content === null) {
+      return res.status(400).json({ error: 'Content parameter required' });
+    }
+    
+    // Security: prevent directory traversal
+    if (requestedPath.includes('..')) {
+      return res.status(400).json({ error: 'Invalid path' });
+    }
+    
+    let filePath;
+    
+    // Check if it's a skill file (read-only for safety)
+    if (requestedPath.startsWith('skills/')) {
+      return res.status(403).json({ error: 'Skills files are read-only' });
+    } else {
+      filePath = path.join(WORKSPACE_DIR, requestedPath);
+    }
+    
+    // Ensure file exists (don't create new files via this endpoint)
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ error: 'File not found' });
+    }
+    
+    // Write the file
+    fs.writeFileSync(filePath, content, 'utf8');
+    
+    const stat = fs.statSync(filePath);
+    console.log(`Saved file: ${filePath} (${stat.size} bytes)`);
+    
+    res.json({
+      success: true,
+      path: requestedPath,
+      size: stat.size,
+      modified: stat.mtimeMs
+    });
+  } catch (e) {
+    console.error('Markdown save error:', e);
+    res.status(500).json({ error: 'Failed to save file: ' + e.message });
   }
 });
 

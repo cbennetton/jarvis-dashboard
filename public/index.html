@@ -658,11 +658,18 @@
 
     .markdown-viewer-header {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: space-between;
       margin-bottom: 24px;
       padding-bottom: 16px;
       border-bottom: 1px solid var(--border);
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .markdown-viewer-info {
+      flex: 1;
+      min-width: 0;
     }
 
     .markdown-viewer-title {
@@ -671,11 +678,13 @@
       display: flex;
       align-items: center;
       gap: 10px;
+      word-break: break-word;
     }
 
     .markdown-viewer-meta {
       font-size: 12px;
       color: var(--text-muted);
+      margin-top: 4px;
     }
 
     .markdown-content {
@@ -841,30 +850,283 @@
     .update-indicator.visible { display: flex; align-items: center; gap: 8px; }
     @keyframes slideIn { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-    /* Responsive */
+    /* Edit Mode Styles */
+    .edit-btn, .save-btn, .cancel-btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 1px solid var(--border);
+    }
+    .edit-btn {
+      background: var(--bg-card);
+      color: var(--text-secondary);
+    }
+    .edit-btn:hover {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+    .save-btn {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+    .save-btn:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+    .save-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .cancel-btn {
+      background: transparent;
+      color: var(--text-muted);
+    }
+    .cancel-btn:hover {
+      background: var(--danger);
+      color: white;
+      border-color: var(--danger);
+    }
+    .editor-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .markdown-editor {
+      width: 100%;
+      min-height: 400px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      color: var(--text-primary);
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 14px;
+      line-height: 1.6;
+      resize: vertical;
+    }
+    .markdown-editor:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+    .save-feedback {
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      animation: fadeIn 0.3s ease;
+    }
+    .save-feedback.success {
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--accent);
+    }
+    .save-feedback.error {
+      background: rgba(239, 68, 68, 0.2);
+      color: var(--danger);
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Responsive - Mobile Portrait Optimization */
     @media (max-width: 1024px) {
       .markdown-grid, .skills-grid { grid-template-columns: 1fr; }
       .file-list-card, .skills-tree-card { position: static; max-height: 300px; }
     }
 
     @media (max-width: 768px) {
-      .status-activity-top { flex-direction: column; text-align: center; }
-      .status-stats-right { margin-left: 0; padding-left: 0; border-left: none; padding-top: 16px; border-top: 1px solid var(--border); }
-      .login-card { padding: 32px 24px; }
+      /* Status card mobile */
+      .status-activity-top { flex-direction: column; text-align: center; gap: 16px; }
+      .status-stats-right { 
+        margin-left: 0; 
+        padding-left: 0; 
+        border-left: none; 
+        padding-top: 16px; 
+        border-top: 1px solid var(--border);
+        width: 100%;
+        justify-content: center;
+      }
+      .status-indicator { width: 60px; height: 60px; }
+      .status-icon { font-size: 28px; }
+      .status-task { font-size: 18px; }
+      
+      /* Login mobile */
+      .login-card { padding: 28px 20px; }
+      .login-title { font-size: 22px; }
+      
+      /* Header mobile */
       .header { padding: 12px 16px; }
-      .page-container { padding: 16px; }
+      .header-title { font-size: 16px; }
+      .header-title span { font-size: 20px; }
+      .logout-btn { padding: 6px 12px; font-size: 13px; }
+      
+      /* Page container mobile */
+      .page-container { padding: 12px; }
+      .page-header { flex-direction: column; gap: 12px; align-items: stretch; }
+      .page-title { font-size: 20px; }
+      .refresh-btn { align-self: flex-end; }
+      
+      /* Calendar mobile portrait */
+      .calendar-card { padding: 16px; }
       .calendar-header { flex-direction: column; gap: 12px; align-items: stretch; }
       .calendar-header > div { width: 100%; justify-content: space-between; display: flex; }
-      .calendar-grid { gap: 6px; }
-      .calendar-day { min-height: 70px; padding: 8px; aspect-ratio: auto; }
-      .tooltip { max-width: 280px; left: 10px !important; right: 10px; }
-      .chat-panel { border-radius:16px; max-width:100%; max-height:70vh; }
+      .calendar-title { font-size: 14px; }
+      .calendar-month { font-size: 14px; }
+      .calendar-grid { gap: 4px; }
+      .calendar-weekday { font-size: 10px; padding: 4px 2px; }
+      .calendar-day { 
+        min-height: 50px; 
+        padding: 4px; 
+        aspect-ratio: auto; 
+      }
+      .calendar-day-number { font-size: 11px; }
+      .calendar-activity-text { font-size: 9px; padding: 1px 3px; }
+      .calendar-activity-count { font-size: 9px; }
+      .calendar-nav button { padding: 6px 10px; font-size: 12px; }
+      .view-btn { padding: 4px 8px; font-size: 11px; }
+      
+      /* Charts mobile */
+      .charts-section { padding-top: 16px; margin-top: 16px; }
+      .charts-header { flex-direction: column; gap: 12px; align-items: stretch; }
+      .chart-toggle { width: 100%; justify-content: center; }
+      .chart-toggle-btn { flex: 1; text-align: center; }
+      .chart-stats { text-align: center; }
+      .chart-container { height: 140px; }
+      
+      /* Status activity card mobile */
+      .status-activity-card { padding: 16px; border-radius: 16px; }
+      
+      /* Activity card mobile */
+      .activity-card { padding: 16px; }
+      .activity-title { font-size: 14px; }
+      .activity-list { max-height: 300px; }
+      .activity-item { padding: 12px 0; gap: 12px; }
+      .activity-task-name { font-size: 14px; }
+      .activity-meta { font-size: 12px; }
+      
+      /* Markdown/Skills mobile */
+      .markdown-grid, .skills-grid { gap: 16px; }
+      .file-list-card, .skills-tree-card { 
+        max-height: 250px; 
+        padding: 12px;
+        border-radius: 12px;
+      }
+      .file-category-title { font-size: 11px; padding-left: 4px; }
+      .file-item { padding: 8px 10px; }
+      .file-item-name { font-size: 13px; }
+      .file-item-meta { font-size: 10px; }
+      
+      .markdown-viewer-card, .skills-viewer-card { 
+        padding: 16px; 
+        border-radius: 12px;
+        min-height: 300px;
+      }
+      .markdown-viewer-header { 
+        flex-direction: column; 
+        gap: 8px; 
+        align-items: flex-start; 
+      }
+      .markdown-viewer-title { font-size: 16px; }
+      .markdown-content { font-size: 14px; }
+      .markdown-content h1 { font-size: 22px; }
+      .markdown-content h2 { font-size: 18px; }
+      .markdown-content h3 { font-size: 16px; }
+      .markdown-content pre { padding: 12px; font-size: 12px; overflow-x: auto; }
+      .markdown-content code { font-size: 12px; }
+      
+      .markdown-editor { 
+        min-height: 300px; 
+        font-size: 13px; 
+        padding: 12px;
+      }
+      .editor-actions { flex-wrap: wrap; }
+      .edit-btn, .save-btn, .cancel-btn { 
+        padding: 8px 14px; 
+        font-size: 12px; 
+      }
+      
+      /* Skills tree mobile */
+      .skill-folder-header { padding: 6px 10px; }
+      .skill-folder-name { font-size: 13px; }
+      .skill-badge { font-size: 9px; padding: 1px 4px; }
+      .skill-file { padding: 6px 10px; font-size: 12px; }
+      
+      /* Tooltip mobile */
+      .tooltip { 
+        max-width: calc(100vw - 20px); 
+        left: 10px !important; 
+        right: 10px; 
+        max-height: 60vh;
+        overflow-y: auto;
+      }
+      
+      /* Chat panel mobile */
+      .chat-panel { border-radius: 16px; max-width: 100%; max-height: 70vh; }
+      .chat-header { padding: 12px 16px; }
+      .chat-header h3 { font-size: 14px; }
+      .chat-context { padding: 10px 16px; font-size: 12px; }
+      .chat-messages { min-height: 150px; padding: 12px 16px; }
+      .chat-msg { font-size: 13px; padding: 8px 12px; }
+      .chat-input-row { padding: 12px 16px; gap: 8px; }
+      .chat-input { padding: 10px 14px; font-size: 14px; }
+      .chat-send { padding: 10px 16px; font-size: 13px; }
+      
+      /* Update indicator mobile */
+      .update-indicator { 
+        bottom: 10px; 
+        right: 10px; 
+        left: 10px; 
+        justify-content: center;
+        font-size: 13px;
+        padding: 10px 16px;
+      }
+      
+      /* Sidebar mobile */
+      .sidebar { width: 85vw; max-width: 300px; }
+      .sidebar-header { padding: 16px; }
+      .sidebar-logo { font-size: 16px; }
+      .sidebar-logo span { font-size: 24px; }
+      .nav-item { padding: 10px 14px; font-size: 13px; }
+      .nav-item-icon { font-size: 16px; }
+      .sidebar-footer { font-size: 11px; padding: 12px 16px; }
+    }
+
+    /* Extra small mobile (< 380px) */
+    @media (max-width: 380px) {
+      .page-container { padding: 8px; }
+      .status-activity-card, .calendar-card, .activity-card { padding: 12px; }
+      .status-indicator { width: 50px; height: 50px; }
+      .status-icon { font-size: 24px; }
+      .status-task { font-size: 16px; }
+      .mini-stat-value { font-size: 18px; }
+      .calendar-day { min-height: 42px; }
+      .calendar-weekday { font-size: 9px; }
+      .markdown-viewer-card, .skills-viewer-card { padding: 12px; }
+      .markdown-editor { min-height: 250px; font-size: 12px; }
     }
 
     @media (min-width:600px) {
-      .chat-overlay { padding:20px; }
-      .chat-panel { border-radius:20px; max-width:450px; max-height:70vh; width:100%; }
-      .chat-messages { max-height:none; }
+      .chat-overlay { padding: 20px; }
+      .chat-panel { border-radius: 20px; max-width: 450px; max-height: 70vh; width: 100%; }
+      .chat-messages { max-height: none; }
+    }
+
+    /* Touch-friendly tap targets */
+    @media (hover: none) and (pointer: coarse) {
+      .btn, .nav-item, .file-item, .skill-file, .skill-folder-header,
+      .calendar-day, .activity-item, .edit-btn, .save-btn, .cancel-btn,
+      .refresh-btn, .logout-btn, .view-btn, .chart-toggle-btn {
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+      }
+      .calendar-nav button { min-height: 40px; }
     }
 
     ::-webkit-scrollbar { width: 8px; }
@@ -1602,8 +1864,12 @@
       });
     }
 
+    let currentMarkdownContent = ''; // Store original content for editing
+    let isEditing = false;
+
     async function loadMarkdownContent(path) {
       currentMarkdownPath = path;
+      isEditing = false;
       renderMarkdownFileList(); // Update active state
 
       const viewer = document.getElementById('markdownViewer');
@@ -1614,13 +1880,20 @@
         if (!res.ok) throw new Error('Failed to load');
         const data = await res.json();
 
+        currentMarkdownContent = data.content;
         const modified = new Date(data.modified).toLocaleString();
         const size = formatSize(data.size);
+        const isSkillFile = path.startsWith('skills/');
 
         viewer.innerHTML = `
           <div class="markdown-viewer-header">
-            <div class="markdown-viewer-title">${getFileIcon(path.split('/').pop())} ${path.split('/').pop()}</div>
-            <div class="markdown-viewer-meta">${size} · Modified ${modified}</div>
+            <div class="markdown-viewer-info">
+              <div class="markdown-viewer-title">${getFileIcon(path.split('/').pop())} ${path.split('/').pop()}</div>
+              <div class="markdown-viewer-meta">${size} · Modified ${modified}</div>
+            </div>
+            <div class="editor-actions" id="editorActions">
+              ${!isSkillFile ? '<button class="edit-btn" id="editBtn" onclick="enterEditMode()">✏️ Edit</button>' : '<span style="font-size:11px;color:var(--text-muted);">Read-only</span>'}
+            </div>
           </div>
           <div class="markdown-content" id="markdownContent"></div>
         `;
@@ -1636,6 +1909,100 @@
       } catch (e) {
         viewer.innerHTML = '<div class="markdown-empty"><div class="markdown-empty-icon">❌</div><p>Failed to load file</p></div>';
       }
+    }
+
+    function enterEditMode() {
+      if (!currentMarkdownPath || isEditing) return;
+      isEditing = true;
+
+      const viewer = document.getElementById('markdownViewer');
+      const modified = new Date().toLocaleString();
+      const fileName = currentMarkdownPath.split('/').pop();
+
+      viewer.innerHTML = `
+        <div class="markdown-viewer-header">
+          <div class="markdown-viewer-info">
+            <div class="markdown-viewer-title">${getFileIcon(fileName)} Editing: ${fileName}</div>
+            <div class="markdown-viewer-meta">Changes will be saved immediately</div>
+          </div>
+          <div class="editor-actions" id="editorActions">
+            <div id="saveFeedback"></div>
+            <button class="cancel-btn" onclick="cancelEdit()">Cancel</button>
+            <button class="save-btn" id="saveBtn" onclick="saveMarkdown()">💾 Save</button>
+          </div>
+        </div>
+        <textarea class="markdown-editor" id="markdownEditor" spellcheck="false">${escapeHtml(currentMarkdownContent)}</textarea>
+      `;
+
+      // Focus the editor
+      const editor = document.getElementById('markdownEditor');
+      editor.focus();
+      
+      // Auto-resize on input
+      editor.addEventListener('input', () => {
+        editor.style.height = 'auto';
+        editor.style.height = Math.max(400, editor.scrollHeight) + 'px';
+      });
+    }
+
+    function cancelEdit() {
+      isEditing = false;
+      loadMarkdownContent(currentMarkdownPath);
+    }
+
+    async function saveMarkdown() {
+      if (!currentMarkdownPath) return;
+      
+      const editor = document.getElementById('markdownEditor');
+      const saveBtn = document.getElementById('saveBtn');
+      const feedback = document.getElementById('saveFeedback');
+      const newContent = editor.value;
+      
+      saveBtn.disabled = true;
+      saveBtn.textContent = '⏳ Saving...';
+      feedback.innerHTML = '';
+
+      try {
+        const res = await fetch('/api/markdown/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify({ path: currentMarkdownPath, content: newContent })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || 'Save failed');
+        }
+
+        // Update stored content
+        currentMarkdownContent = newContent;
+        
+        // Show success feedback
+        feedback.innerHTML = '<span class="save-feedback success">✓ Saved!</span>';
+        saveBtn.textContent = '💾 Save';
+        saveBtn.disabled = false;
+
+        // Auto-switch back to view mode after 1.5s
+        setTimeout(() => {
+          if (isEditing) {
+            isEditing = false;
+            loadMarkdownContent(currentMarkdownPath);
+          }
+        }, 1500);
+
+      } catch (e) {
+        feedback.innerHTML = `<span class="save-feedback error">✗ ${e.message}</span>`;
+        saveBtn.textContent = '💾 Save';
+        saveBtn.disabled = false;
+      }
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
     }
 
     document.getElementById('refreshMarkdowns').addEventListener('click', () => loadMarkdowns(true));
