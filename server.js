@@ -235,6 +235,211 @@ app.post('/api/internal/chat-reply', (req, res) => {
   res.json({ success: true });
 });
 
+// ==================== MARKDOWN & SKILLS API ====================
+const WORKSPACE_DIR = path.join(process.env.HOME, '.openclaw', 'workspace');
+const SKILLS_DIR = path.join(process.env.HOME, '.openclaw', 'skills');
+
+// Cache for file modification times to support change detection
+let fileModTimes = {};
+
+function getFileModTime(filePath) {
+  try {
+    return fs.statSync(filePath).mtimeMs;
+  } catch (e) {
+    return 0;
+  }
+}
+
+function scanMarkdownFiles() {
+  const files = [];
+  const rootMdFiles = ['AGENTS.md', 'MEMORY.md', 'TOOLS.md', 'USER.md', 'SOUL.md', 'HEARTBEAT.md'];
+  
+  // Root markdown files
+  rootMdFiles.forEach(name => {
+    const filePath = path.join(WORKSPACE_DIR, name);
+    if (fs.existsSync(filePath)) {
+      const stat = fs.statSync(filePath);
+      files.push({
+        name,
+        path: name,
+        size: stat.size,
+        modified: stat.mtimeMs,
+        category: 'root'
+      });
+    }
+  });
+  
+  // Memory directory files
+  const memoryDir = path.join(WORKSPACE_DIR, 'memory');
+  if (fs.existsSync(memoryDir)) {
+    const memoryFiles = fs.readdirSync(memoryDir).filter(f => f.endsWith('.md') || f.endsWith('.json'));
+    memoryFiles.forEach(name => {
+      const filePath = path.join(memoryDir, name);
+      const stat = fs.statSync(filePath);
+      files.push({
+        name,
+        path: `memory/${name}`,
+        size: stat.size,
+        modified: stat.mtimeMs,
+        category: 'memory'
+      });
+    });
+  }
+  
+  return files.sort((a, b) => b.modified - a.modified);
+}
+
+function scanSkillsDirectory(dir = SKILLS_DIR, basePath = '') {
+  const items = [];
+  
+  if (!fs.existsSync(dir)) return items;
+  
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+  entries.forEach(entry => {
+    const fullPath = path.join(dir, entry.name);
+    const relativePath = basePath ? `${basePath}/${entry.name}` : entry.name;
+    
+    if (entry.isDirectory()) {
+      // Check if it's a skill directory (has SKILL.md)
+      const skillMd = path.join(fullPath, 'SKILL.md');
+      const isSkill = fs.existsSync(skillMd);
+      
+      items.push({
+        name: entry.name,
+        path: relativePath,
+        type: 'directory',
+        isSkill,
+        children: scanSkillsDirectory(fullPath, relativePath)
+      });
+    } else if (entry.name.endsWith('.md') || entry.name.endsWith('.js') || entry.name.endsWith('.sh') || entry.name.endsWith('.py')) {
+      const stat = fs.statSync(fullPath);
+      items.push({
+        name: entry.name,
+        path: relativePath,
+        type: 'file',
+        size: stat.size,
+        modified: stat.mtimeMs
+      });
+    }
+  });
+  
+  return items.sort((a, b) => {
+    // Directories first, then files
+    if (a.type === 'directory' && b.type !== 'directory') return -1;
+    if (a.type !== 'directory' && b.type === 'directory') return 1;
+    return a.name.localeCompare(b.name);
+  });
+}
+
+// List all markdown files
+app.get('/api/markdowns', requireAuth, (req, res) => {
+  try {
+    const files = scanMarkdownFiles();
+    // Calculate hash of modification times for change detection
+    const hash = files.reduce((h, f) => h + f.modified, 0).toString(36);
+    res.json({ files, hash, timestamp: Date.now() });
+  } catch (e) {
+    console.error('Markdowns API error:', e);
+    res.status(500).json({ error: 'Failed to list markdown files' });
+  }
+});
+
+// Get specific markdown content (using query param for path to work with Express 5)
+app.get('/api/markdown', requireAuth, (req, res) => {
+  try {
+    const requestedPath = req.query.path;
+    
+    if (!requestedPath) {
+      return res.status(400).json({ error: 'Path parameter required' });
+    }
+    
+    // Security: prevent directory traversal
+    if (requestedPath.includes('..')) {
+      return res.status(400).json({ error: 'Invalid path' });
+    }
+    
+    let filePath;
+    
+    // Check if it's a skill file
+    if (requestedPath.startsWith('skills/')) {
+      filePath = path.join(SKILLS_DIR, requestedPath.replace('skills/', ''));
+    } else {
+      filePath = path.join(WORKSPACE_DIR, requestedPath);
+    }
+    
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ error: 'File not found' });
+    }
+    
+    const content = fs.readFileSync(filePath, 'utf8');
+    const stat = fs.statSync(filePath);
+    
+    res.json({
+      path: requestedPath,
+      content,
+      size: stat.size,
+      modified: stat.mtimeMs
+    });
+  } catch (e) {
+    console.error('Markdown API error:', e);
+    res.status(500).json({ error: 'Failed to read file' });
+  }
+});
+
+// List skills directory
+app.get('/api/skills', requireAuth, (req, res) => {
+  try {
+    const skills = scanSkillsDirectory();
+    // Calculate hash for change detection
+    const hashSkills = (items) => {
+      let h = 0;
+      items.forEach(i => {
+        h += (i.modified || 0);
+        if (i.children) h += hashSkills(i.children);
+      });
+      return h;
+    };
+    const hash = hashSkills(skills).toString(36);
+    res.json({ skills, hash, timestamp: Date.now() });
+  } catch (e) {
+    console.error('Skills API error:', e);
+    res.status(500).json({ error: 'Failed to list skills' });
+  }
+});
+
+// Check for changes endpoint (for polling)
+app.get('/api/changes', requireAuth, (req, res) => {
+  const { markdownHash, skillsHash } = req.query;
+  
+  try {
+    const currentMarkdowns = scanMarkdownFiles();
+    const currentSkills = scanSkillsDirectory();
+    
+    const newMarkdownHash = currentMarkdowns.reduce((h, f) => h + f.modified, 0).toString(36);
+    const hashSkills = (items) => {
+      let h = 0;
+      items.forEach(i => {
+        h += (i.modified || 0);
+        if (i.children) h += hashSkills(i.children);
+      });
+      return h;
+    };
+    const newSkillsHash = hashSkills(currentSkills).toString(36);
+    
+    res.json({
+      markdownsChanged: markdownHash !== newMarkdownHash,
+      skillsChanged: skillsHash !== newSkillsHash,
+      newMarkdownHash,
+      newSkillsHash,
+      timestamp: Date.now()
+    });
+  } catch (e) {
+    res.json({ markdownsChanged: false, skillsChanged: false, timestamp: Date.now() });
+  }
+});
+
+// ==================== END MARKDOWN & SKILLS API ====================
+
 // Internal API
 const API_KEY = 'jarvis-secret-key-xK9mP2nQ7vL4';
 app.post('/api/internal/status', (req, res) => {
