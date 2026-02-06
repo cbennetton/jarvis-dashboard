@@ -2946,18 +2946,10 @@
         const data = await res.json();
         if (data.authenticated) {
           showDashboard();
-        } else {
-          showLogin();
         }
       } catch (e) {
         console.log('Auth check failed, showing login');
-        showLogin();
       }
-    }
-
-    function showLogin() {
-      loginScreen.style.display = 'flex';
-      dashboard.style.display = 'none';
     }
 
     document.getElementById('logoutBtn').addEventListener('click', async () => {
