@@ -469,117 +469,382 @@
       gap: 8px;
     }
 
-    /* Calendar Styles */
-    .calendar-card { margin-bottom: 24px; }
+    /* ==================== CALENDAR STYLES (Redesigned) ==================== */
+    .calendar-card { 
+      margin-bottom: 24px; 
+      padding: 20px;
+    }
 
     .calendar-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 16px;
+      margin-bottom: 20px;
+      gap: 16px;
     }
 
-    .calendar-nav { display: flex; gap: 8px; }
+    .calendar-nav { 
+      display: flex; 
+      gap: 8px;
+      align-items: center;
+    }
 
     .calendar-nav button {
       background: var(--bg-secondary);
       border: 1px solid var(--border);
       color: var(--text-secondary);
-      padding: 8px 12px;
-      border-radius: 8px;
+      padding: 10px 16px;
+      border-radius: 10px;
       cursor: pointer;
       transition: all 0.2s;
+      font-size: 16px;
+      min-width: 44px;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
-    .calendar-nav button:hover { background: var(--border); color: var(--text-primary); }
+    .calendar-nav button:hover { 
+      background: var(--accent); 
+      color: white;
+      border-color: var(--accent);
+      transform: scale(1.05);
+    }
 
-    .calendar-month { font-size: 18px; font-weight: 600; }
+    .calendar-month { 
+      font-size: 18px; 
+      font-weight: 600;
+      min-width: 150px;
+      text-align: center;
+    }
 
     .calendar-toggle {
       display: flex;
       background: var(--bg-secondary);
-      border-radius: 8px;
+      border-radius: 12px;
       padding: 4px;
+      border: 1px solid var(--border);
     }
 
     .view-btn {
       background: transparent;
       border: none;
       color: var(--text-muted);
-      padding: 6px 12px;
-      border-radius: 6px;
+      padding: 10px 18px;
+      border-radius: 10px;
       cursor: pointer;
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 500;
       transition: all 0.2s;
+      min-height: 44px;
     }
-    .view-btn:hover { color: var(--text-secondary); }
+    .view-btn:hover { color: var(--text-secondary); background: rgba(255,255,255,0.05); }
     .view-btn.active { background: var(--accent); color: white; }
 
+    .calendar-controls {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    /* Desktop Calendar Grid */
     .calendar-grid {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
-      gap: 4px;
+      gap: 6px;
     }
 
     .calendar-weekday {
       text-align: center;
-      font-size: 12px;
+      font-size: 13px;
       color: var(--text-muted);
-      padding: 8px 4px;
-      font-weight: 500;
+      padding: 12px 4px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
     .calendar-day {
       aspect-ratio: 1;
-      min-height: 80px;
+      min-height: 90px;
       background: var(--bg-secondary);
-      border-radius: 8px;
-      padding: 8px;
+      border-radius: 12px;
+      padding: 10px;
       position: relative;
       cursor: default;
-      transition: all 0.2s;
-    }
-
-    .calendar-day:hover { background: rgba(255,255,255,0.08); }
-    .calendar-day.other-month { opacity: 0.3; }
-    .calendar-day.today { border: 2px solid var(--accent); }
-    .calendar-day.has-activity { cursor: pointer; }
-
-    .calendar-day-number { font-size: 12px; font-weight: 500; color: var(--text-secondary); }
-
-    .calendar-day-activities {
-      margin-top: 4px;
+      transition: all 0.25s ease;
       display: flex;
       flex-direction: column;
-      gap: 3px;
+      border: 1px solid transparent;
+    }
+
+    .calendar-day:hover { 
+      background: rgba(255,255,255,0.08);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    .calendar-day.other-month { opacity: 0.3; }
+    .calendar-day.today { 
+      border: 2px solid var(--accent); 
+      box-shadow: 0 0 20px var(--accent-glow);
+    }
+    .calendar-day.has-activity { 
+      cursor: pointer;
+    }
+
+    /* Activity level backgrounds */
+    .calendar-day.activity-level-1 { background: rgba(16, 185, 129, 0.1); }
+    .calendar-day.activity-level-2 { background: rgba(16, 185, 129, 0.2); }
+    .calendar-day.activity-level-3 { background: rgba(16, 185, 129, 0.3); }
+    .calendar-day.activity-level-4 { background: rgba(16, 185, 129, 0.4); }
+
+    .calendar-day-number { 
+      font-size: 15px; 
+      font-weight: 600; 
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+
+    .calendar-day-activities {
+      margin-top: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
       overflow: hidden;
       flex: 1;
     }
 
     .calendar-activity-dot {
-      height: 6px;
-      border-radius: 3px;
+      height: 8px;
+      border-radius: 4px;
       background: var(--accent);
-      opacity: 0.8;
+      opacity: 0.9;
     }
 
     .calendar-activity-text {
       font-size: 11px;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding: 4px 6px;
+      background: rgba(16, 185, 129, 0.2);
+      border-radius: 6px;
+      border-left: 3px solid var(--accent);
+    }
+
+    .calendar-activity-count {
+      font-size: 11px;
+      color: var(--accent);
+      font-weight: 600;
+      margin-top: 2px;
+      padding: 2px 6px;
+      background: rgba(16, 185, 129, 0.15);
+      border-radius: 4px;
+      display: inline-block;
+    }
+
+    /* ==================== MOBILE VERTICAL WEEK VIEW ==================== */
+    .calendar-week-list {
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .calendar-week-day {
+      display: flex;
+      align-items: stretch;
+      background: var(--bg-secondary);
+      border-radius: 16px;
+      overflow: hidden;
+      min-height: 70px;
+      transition: all 0.25s ease;
+      border: 1px solid transparent;
+    }
+
+    .calendar-week-day:active {
+      transform: scale(0.98);
+    }
+
+    .calendar-week-day.today {
+      border: 2px solid var(--accent);
+      box-shadow: 0 0 15px var(--accent-glow);
+    }
+
+    .calendar-week-day.has-activity {
+      cursor: pointer;
+    }
+
+    /* Activity level backgrounds for week view */
+    .calendar-week-day.activity-level-1 { background: linear-gradient(90deg, rgba(16, 185, 129, 0.15) 0%, var(--bg-secondary) 100%); }
+    .calendar-week-day.activity-level-2 { background: linear-gradient(90deg, rgba(16, 185, 129, 0.25) 0%, var(--bg-secondary) 100%); }
+    .calendar-week-day.activity-level-3 { background: linear-gradient(90deg, rgba(16, 185, 129, 0.35) 0%, var(--bg-secondary) 100%); }
+    .calendar-week-day.activity-level-4 { background: linear-gradient(90deg, rgba(16, 185, 129, 0.45) 0%, var(--bg-secondary) 100%); }
+
+    .calendar-week-day-date {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 16px;
+      min-width: 70px;
+      background: rgba(255,255,255,0.03);
+      border-right: 1px solid var(--border);
+    }
+
+    .calendar-week-day-weekday {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .calendar-week-day-number {
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: 1.1;
+    }
+
+    .calendar-week-day.today .calendar-week-day-number {
+      color: var(--accent);
+    }
+
+    .calendar-week-day-content {
+      flex: 1;
+      padding: 10px 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 4px;
+      overflow: hidden;
+    }
+
+    .calendar-week-activity-item {
+      font-size: 13px;
       color: var(--text-secondary);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      padding: 2px 4px;
-      background: rgba(16, 185, 129, 0.15);
-      border-radius: 4px;
-      border-left: 2px solid var(--accent);
+      padding: 4px 8px;
+      background: rgba(16, 185, 129, 0.12);
+      border-radius: 6px;
+      border-left: 3px solid var(--accent);
     }
 
-    .calendar-activity-count {
-      font-size: 10px;
+    .calendar-week-activity-count {
+      font-size: 12px;
       color: var(--accent);
       font-weight: 600;
+      padding: 3px 8px;
+      background: rgba(16, 185, 129, 0.15);
+      border-radius: 6px;
+      display: inline-block;
+      width: fit-content;
+    }
+
+    .calendar-week-day-empty {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    .calendar-week-day-indicator {
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      color: var(--text-muted);
+      font-size: 18px;
+    }
+
+    .calendar-week-day.has-activity .calendar-week-day-indicator {
+      color: var(--accent);
+    }
+
+    /* Mobile Month Grid - Compact but readable */
+    .calendar-grid-mobile {
+      display: none;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+
+    .calendar-grid-mobile .calendar-weekday {
+      font-size: 11px;
+      padding: 8px 2px;
+    }
+
+    .calendar-grid-mobile .calendar-day {
+      aspect-ratio: 1;
+      min-height: 48px;
+      padding: 4px;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+    }
+
+    .calendar-grid-mobile .calendar-day-number {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .calendar-grid-mobile .calendar-day-activities {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 2px;
+      justify-content: center;
       margin-top: 2px;
+    }
+
+    .calendar-grid-mobile .calendar-activity-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+
+    .calendar-grid-mobile .calendar-activity-text {
+      display: none;
+    }
+
+    .calendar-grid-mobile .calendar-activity-count {
+      font-size: 9px;
+      padding: 1px 4px;
+      margin-top: 1px;
+    }
+
+    /* Desktop calendar grid wrapper */
+    .calendar-grid-desktop {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+    }
+
+    /* On desktop: show grid, hide mobile views */
+    @media (min-width: 769px) {
+      .calendar-grid-desktop { display: grid; }
+      .calendar-grid-mobile { display: none !important; }
+      .calendar-week-list { display: none !important; }
+    }
+
+    /* On mobile: hide desktop grid, show appropriate mobile view */
+    @media (max-width: 768px) {
+      .calendar-grid-desktop { display: none !important; }
+      
+      /* Week view - show vertical list by default */
+      #calendarGrid .calendar-week-list { display: flex; }
+      #calendarGrid .calendar-grid-mobile { display: none; }
+      
+      /* Month view - show compact grid */
+      #calendarGrid.show-month-grid .calendar-week-list { display: none !important; }
+      #calendarGrid.show-month-grid .calendar-grid-mobile { display: grid !important; }
+      
+      /* Week view - show list (explicit class) */
+      #calendarGrid.show-week-list .calendar-week-list { display: flex !important; }
+      #calendarGrid.show-week-list .calendar-grid-mobile { display: none !important; }
     }
 
     /* Tooltip */
@@ -1016,32 +1281,68 @@
       .refresh-btn { align-self: flex-end; }
       
       /* Calendar page controls mobile */
-      #calendarPage .page-header > div { 
-        flex-direction: column; 
-        gap: 12px; 
-        width: 100%; 
+      #calendarPage .page-header { 
+        flex-direction: column;
+        gap: 16px;
+        align-items: stretch;
       }
-      #calendarPage .calendar-toggle { width: 100%; justify-content: center; }
-      #calendarPage .calendar-nav { width: 100%; justify-content: center; }
+      #calendarPage .page-title {
+        text-align: center;
+        font-size: 20px;
+      }
+      .calendar-controls { 
+        flex-direction: column-reverse; 
+        gap: 12px; 
+        width: 100%;
+        align-items: stretch;
+      }
+      .calendar-toggle { 
+        width: 100%; 
+        justify-content: center;
+      }
+      .calendar-nav { 
+        width: 100%; 
+        justify-content: space-between;
+      }
+      .calendar-month {
+        flex: 1;
+        text-align: center;
+      }
       
-      /* Calendar mobile portrait */
+      /* Calendar mobile portrait - Show vertical week list */
       .calendar-card { padding: 16px; }
       .calendar-header { flex-direction: column; gap: 12px; align-items: stretch; }
       .calendar-header > div { width: 100%; justify-content: space-between; display: flex; }
       .calendar-title { font-size: 14px; }
-      .calendar-month { font-size: 14px; }
-      .calendar-grid { gap: 4px; }
-      .calendar-weekday { font-size: 10px; padding: 4px 2px; }
-      .calendar-day { 
-        min-height: 50px; 
-        padding: 4px; 
-        aspect-ratio: auto; 
+      .calendar-month { font-size: 15px; min-width: auto; }
+      
+      /* Month view uses compact grid on mobile */
+      .calendar-grid-mobile .calendar-day { min-height: 50px; }
+      
+      .calendar-nav { justify-content: center; }
+      .calendar-nav button { 
+        padding: 10px 16px; 
+        font-size: 16px;
+        min-width: 50px;
+        min-height: 50px;
       }
-      .calendar-day-number { font-size: 11px; }
-      .calendar-activity-text { font-size: 9px; padding: 1px 3px; }
-      .calendar-activity-count { font-size: 9px; }
-      .calendar-nav button { padding: 6px 10px; font-size: 12px; }
-      .view-btn { padding: 4px 8px; font-size: 11px; }
+      .calendar-toggle { width: 100%; }
+      .view-btn { 
+        flex: 1; 
+        text-align: center; 
+        padding: 12px 16px; 
+        font-size: 14px;
+        min-height: 48px;
+      }
+      
+      /* Tooltip mobile */
+      .tooltip { 
+        max-width: calc(100vw - 20px); 
+        left: 10px !important; 
+        right: 10px !important;
+        max-height: 60vh;
+        overflow-y: auto;
+      }
       
       /* Charts mobile */
       .charts-section { padding-top: 16px; margin-top: 16px; }
@@ -2222,15 +2523,15 @@
       <div class="page" id="calendarPage">
         <div class="page-header">
           <h1 class="page-title">📅 Activity Calendar</h1>
-          <div style="display: flex; align-items: center; gap: 16px;">
+          <div class="calendar-controls">
             <div class="calendar-toggle">
               <button id="viewWeek" class="view-btn active">Week</button>
               <button id="viewMonth" class="view-btn">Month</button>
             </div>
             <div class="calendar-nav">
-              <button id="prevPeriod">←</button>
+              <button id="prevPeriod">‹</button>
               <span class="calendar-month" id="calendarLabel">This Week</span>
-              <button id="nextPeriod">→</button>
+              <button id="nextPeriod">›</button>
             </div>
           </div>
         </div>
@@ -2580,7 +2881,10 @@
       document.getElementById('headerPageTitle').textContent = titles[pageName] || 'Dashboard';
 
       // Load page content
-      if (pageName === 'calendar') renderCalendar();
+      if (pageName === 'calendar') {
+        updateMobileViewVisibility();
+        renderCalendar();
+      }
       if (pageName === 'repositories') loadRepositoriesPage();
       if (pageName === 'markdowns') loadMarkdowns();
       if (pageName === 'skills') loadSkills();
@@ -2747,6 +3051,18 @@
       return d;
     }
 
+    function getActivityLevel(count) {
+      if (count === 0) return 0;
+      if (count <= 1) return 1;
+      if (count <= 3) return 2;
+      if (count <= 5) return 3;
+      return 4;
+    }
+
+    function isMobileView() {
+      return window.innerWidth < 768;
+    }
+
     function renderCalendar() {
       if (calendarView === 'week') renderWeekView();
       else renderMonthView();
@@ -2764,7 +3080,10 @@
       label.textContent = currentWeekStart.getTime() === thisWeekStart.getTime() ? 'This Week' :
         `${currentWeekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
 
-      let html = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d => `<div class="calendar-weekday">${d}</div>`).join('');
+      // Build both desktop grid and mobile list
+      let desktopHtml = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d => `<div class="calendar-weekday">${d}</div>`).join('');
+      let mobileHtml = '';
+      const weekdays = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 
       for (let i = 0; i < 7; i++) {
         const date = new Date(currentWeekStart);
@@ -2773,10 +3092,15 @@
         const isToday = date.getTime() === today.getTime();
         const dayActivities = allActivities.filter(a => new Date(a.timestamp).toDateString() === dateStr).sort((a,b) => b.timestamp - a.timestamp);
         const hasActivity = dayActivities.length > 0;
+        const activityLevel = getActivityLevel(dayActivities.length);
+        
+        // Desktop grid classes
         const classes = ['calendar-day'];
         if (isToday) classes.push('today');
         if (hasActivity) classes.push('has-activity');
+        if (activityLevel > 0) classes.push(`activity-level-${activityLevel}`);
 
+        // Desktop activity HTML
         let activityHtml = '';
         if (hasActivity) {
           const show = dayActivities.slice(0, 3);
@@ -2784,9 +3108,42 @@
           if (dayActivities.length > 3) activityHtml += `<div class="calendar-activity-count">+${dayActivities.length - 3} more</div>`;
         }
 
-        html += `<div class="${classes.join(' ')}" data-date="${date.toISOString()}"><div class="calendar-day-number">${date.getDate()}</div><div class="calendar-day-activities">${activityHtml}</div></div>`;
+        desktopHtml += `<div class="${classes.join(' ')}" data-date="${date.toISOString()}"><div class="calendar-day-number">${date.getDate()}</div><div class="calendar-day-activities">${activityHtml}</div></div>`;
+
+        // Mobile list view
+        const mobileClasses = ['calendar-week-day'];
+        if (isToday) mobileClasses.push('today');
+        if (hasActivity) mobileClasses.push('has-activity');
+        if (activityLevel > 0) mobileClasses.push(`activity-level-${activityLevel}`);
+
+        let mobileActivityHtml = '';
+        if (hasActivity) {
+          const show = dayActivities.slice(0, 2);
+          show.forEach(a => { 
+            mobileActivityHtml += `<div class="calendar-week-activity-item">${esc(a.task || 'Task')}</div>`; 
+          });
+          if (dayActivities.length > 2) {
+            mobileActivityHtml += `<div class="calendar-week-activity-count">+${dayActivities.length - 2} more</div>`;
+          }
+        } else {
+          mobileActivityHtml = '<div class="calendar-week-day-empty">No activity</div>';
+        }
+
+        mobileHtml += `
+          <div class="${mobileClasses.join(' ')}" data-date="${date.toISOString()}">
+            <div class="calendar-week-day-date">
+              <div class="calendar-week-day-weekday">${weekdays[i]}</div>
+              <div class="calendar-week-day-number">${date.getDate()}</div>
+            </div>
+            <div class="calendar-week-day-content">${mobileActivityHtml}</div>
+            <div class="calendar-week-day-indicator">${hasActivity ? '›' : ''}</div>
+          </div>
+        `;
       }
-      grid.innerHTML = html;
+
+      // Render to both containers
+      grid.innerHTML = desktopHtml + `<div class="calendar-week-list">${mobileHtml}</div>`;
+      
       attachTooltipEvents();
     }
 
@@ -2806,14 +3163,21 @@
       const today = new Date();
       today.setHours(0,0,0,0);
 
-      let html = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d => `<div class="calendar-weekday">${d}</div>`).join('');
+      // Build both desktop and mobile grids
+      const weekdayLabels = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d => `<div class="calendar-weekday">${d}</div>`).join('');
+      let desktopHtml = weekdayLabels;
+      let mobileHtml = weekdayLabels;
 
+      // Previous month days
       const prevMonthDate = new Date(year, month, 0);
       for (let i = startDay - 1; i > 0; i--) {
         const day = prevMonthDate.getDate() - i + 1;
-        html += `<div class="calendar-day other-month"><div class="calendar-day-number">${day}</div></div>`;
+        const cellHtml = `<div class="calendar-day other-month"><div class="calendar-day-number">${day}</div></div>`;
+        desktopHtml += cellHtml;
+        mobileHtml += cellHtml;
       }
 
+      // Current month days
       for (let day = 1; day <= lastDay.getDate(); day++) {
         const date = new Date(year, month, day);
         const dateStr = date.toDateString();
@@ -2821,36 +3185,62 @@
 
         const dayActivities = allActivities.filter(a => new Date(a.timestamp).toDateString() === dateStr);
         const hasActivity = dayActivities.length > 0;
+        const activityLevel = getActivityLevel(dayActivities.length);
 
         const classes = ['calendar-day'];
         if (isToday) classes.push('today');
         if (hasActivity) classes.push('has-activity');
+        if (activityLevel > 0) classes.push(`activity-level-${activityLevel}`);
 
-        let activityHtml = '';
+        // Desktop: show text activities
+        let desktopActivityHtml = '';
         if (hasActivity) {
           const dots = Math.min(dayActivities.length, 3);
           for (let j = 0; j < dots; j++) {
-            activityHtml += '<div class="calendar-activity-dot"></div>';
+            desktopActivityHtml += '<div class="calendar-activity-dot"></div>';
           }
           if (dayActivities.length > 3) {
-            activityHtml += `<div class="calendar-activity-count">+${dayActivities.length - 3}</div>`;
+            desktopActivityHtml += `<div class="calendar-activity-count">+${dayActivities.length - 3}</div>`;
           }
         }
 
-        html += `<div class="${classes.join(' ')}" data-date="${date.toISOString()}"><div class="calendar-day-number">${day}</div><div class="calendar-day-activities">${activityHtml}</div></div>`;
+        // Mobile: just show dots (compact)
+        let mobileActivityHtml = '';
+        if (hasActivity) {
+          const dots = Math.min(dayActivities.length, 4);
+          for (let j = 0; j < dots; j++) {
+            mobileActivityHtml += '<div class="calendar-activity-dot"></div>';
+          }
+          if (dayActivities.length > 4) {
+            mobileActivityHtml += `<div class="calendar-activity-count">+${dayActivities.length - 4}</div>`;
+          }
+        }
+
+        desktopHtml += `<div class="${classes.join(' ')}" data-date="${date.toISOString()}"><div class="calendar-day-number">${day}</div><div class="calendar-day-activities">${desktopActivityHtml}</div></div>`;
+        mobileHtml += `<div class="${classes.join(' ')}" data-date="${date.toISOString()}"><div class="calendar-day-number">${day}</div><div class="calendar-day-activities">${mobileActivityHtml}</div></div>`;
       }
 
+      // Next month days
       const remaining = 42 - (startDay - 1 + lastDay.getDate());
       for (let day = 1; day <= remaining && remaining < 7; day++) {
-        html += `<div class="calendar-day other-month"><div class="calendar-day-number">${day}</div></div>`;
+        const cellHtml = `<div class="calendar-day other-month"><div class="calendar-day-number">${day}</div></div>`;
+        desktopHtml += cellHtml;
+        mobileHtml += cellHtml;
       }
 
-      grid.innerHTML = html;
+      // Render both: desktop grid is shown on large screens, mobile grid on small
+      grid.innerHTML = `
+        <div class="calendar-grid-desktop">${desktopHtml}</div>
+        <div class="calendar-grid-mobile">${mobileHtml}</div>
+      `;
+      
       attachTooltipEvents();
     }
 
     function attachTooltipEvents() {
       const isMobile = window.innerWidth < 768;
+      
+      // Attach to calendar day cells (both desktop and mobile grids)
       document.querySelectorAll('.calendar-day.has-activity').forEach(el => {
         if (isMobile) {
           el.addEventListener('click', (e) => { e.stopPropagation(); showTooltip(e); });
@@ -2858,6 +3248,11 @@
           el.addEventListener('mouseenter', showTooltip);
           el.addEventListener('mouseleave', hideTooltip);
         }
+      });
+
+      // Attach to mobile week list items
+      document.querySelectorAll('.calendar-week-day.has-activity').forEach(el => {
+        el.addEventListener('click', (e) => { e.stopPropagation(); showTooltip(e); });
       });
     }
 
@@ -2925,6 +3320,7 @@
       calendarView = 'week';
       document.getElementById('viewWeek').classList.add('active');
       document.getElementById('viewMonth').classList.remove('active');
+      updateMobileViewVisibility();
       renderCalendar();
     });
 
@@ -2932,7 +3328,27 @@
       calendarView = 'month';
       document.getElementById('viewMonth').classList.add('active');
       document.getElementById('viewWeek').classList.remove('active');
+      updateMobileViewVisibility();
       renderCalendar();
+    });
+
+    function updateMobileViewVisibility() {
+      // On mobile, show/hide the appropriate view based on calendarView
+      const grid = document.getElementById('calendarGrid');
+      if (window.innerWidth < 768) {
+        if (calendarView === 'week') {
+          grid.classList.add('show-week-list');
+          grid.classList.remove('show-month-grid');
+        } else {
+          grid.classList.add('show-month-grid');
+          grid.classList.remove('show-week-list');
+        }
+      }
+    }
+
+    // Handle window resize
+    window.addEventListener('resize', () => {
+      updateMobileViewVisibility();
     });
 
     // ==================== MARKDOWN FILES ====================
