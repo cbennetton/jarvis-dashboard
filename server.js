@@ -490,6 +490,193 @@ app.get('/api/changes', requireAuth, (req, res) => {
 
 // ==================== END MARKDOWN & SKILLS API ====================
 
+// ==================== API USAGE API ====================
+const SESSIONS_DIR = path.join(process.env.HOME, '.openclaw', 'agents', 'main', 'sessions');
+
+// Pricing per million tokens (as of 2026)
+const MODEL_PRICING = {
+  'claude-sonnet-4-5': { input: 3.00, output: 15.00, cacheRead: 0.30, cacheWrite: 3.75 },
+  'claude-opus-4-5': { input: 15.00, output: 75.00, cacheRead: 1.50, cacheWrite: 18.75 },
+  'claude-haiku-3-5': { input: 0.80, output: 4.00, cacheRead: 0.08, cacheWrite: 1.00 },
+  'claude-3-5-sonnet': { input: 3.00, output: 15.00, cacheRead: 0.30, cacheWrite: 3.75 },
+  'claude-3-opus': { input: 15.00, output: 75.00, cacheRead: 1.50, cacheWrite: 18.75 },
+  'claude-3-haiku': { input: 0.25, output: 1.25, cacheRead: 0.03, cacheWrite: 0.30 }
+};
+
+// Model display info
+const MODEL_INFO = {
+  'claude-sonnet-4-5': { emoji: '🎵', name: 'Claude Sonnet 4.5', color: '#10b981' },
+  'claude-opus-4-5': { emoji: '🎼', name: 'Claude Opus 4.5', color: '#8b5cf6' },
+  'claude-haiku-3-5': { emoji: '🌸', name: 'Claude Haiku 3.5', color: '#f472b6' },
+  'claude-3-5-sonnet': { emoji: '🎵', name: 'Claude 3.5 Sonnet', color: '#10b981' },
+  'claude-3-opus': { emoji: '🎼', name: 'Claude 3 Opus', color: '#8b5cf6' },
+  'claude-3-haiku': { emoji: '🌸', name: 'Claude 3 Haiku', color: '#f472b6' }
+};
+
+function parseSessionFile(filePath) {
+  const usage = {};
+  
+  try {
+    const content = fs.readFileSync(filePath, 'utf8');
+    const lines = content.split('\n').filter(line => line.trim());
+    
+    for (const line of lines) {
+      try {
+        const entry = JSON.parse(line);
+        
+        // Check for usage data in message
+        if (entry.message && entry.message.usage && entry.message.model) {
+          const model = entry.message.model;
+          const u = entry.message.usage;
+          
+          if (!usage[model]) {
+            usage[model] = {
+              input: 0,
+              output: 0,
+              cacheRead: 0,
+              cacheWrite: 0,
+              totalTokens: 0,
+              cost: 0,
+              calls: 0
+            };
+          }
+          
+          usage[model].input += u.input || 0;
+          usage[model].output += u.output || 0;
+          usage[model].cacheRead += u.cacheRead || 0;
+          usage[model].cacheWrite += u.cacheWrite || 0;
+          usage[model].totalTokens += u.totalTokens || (u.input || 0) + (u.output || 0) + (u.cacheRead || 0) + (u.cacheWrite || 0);
+          
+          // Use pre-calculated cost if available, otherwise calculate
+          if (u.cost && u.cost.total) {
+            usage[model].cost += u.cost.total;
+          } else {
+            const pricing = MODEL_PRICING[model] || MODEL_PRICING['claude-sonnet-4-5'];
+            const cost = (
+              ((u.input || 0) / 1000000) * pricing.input +
+              ((u.output || 0) / 1000000) * pricing.output +
+              ((u.cacheRead || 0) / 1000000) * pricing.cacheRead +
+              ((u.cacheWrite || 0) / 1000000) * pricing.cacheWrite
+            );
+            usage[model].cost += cost;
+          }
+          
+          usage[model].calls++;
+        }
+      } catch (e) {
+        // Skip malformed lines
+      }
+    }
+  } catch (e) {
+    console.error(`Error reading session file ${filePath}:`, e.message);
+  }
+  
+  return usage;
+}
+
+function aggregateUsage(usageList) {
+  const aggregated = {};
+  
+  for (const usage of usageList) {
+    for (const [model, data] of Object.entries(usage)) {
+      if (!aggregated[model]) {
+        aggregated[model] = {
+          input: 0,
+          output: 0,
+          cacheRead: 0,
+          cacheWrite: 0,
+          totalTokens: 0,
+          cost: 0,
+          calls: 0
+        };
+      }
+      
+      aggregated[model].input += data.input;
+      aggregated[model].output += data.output;
+      aggregated[model].cacheRead += data.cacheRead;
+      aggregated[model].cacheWrite += data.cacheWrite;
+      aggregated[model].totalTokens += data.totalTokens;
+      aggregated[model].cost += data.cost;
+      aggregated[model].calls += data.calls;
+    }
+  }
+  
+  return aggregated;
+}
+
+// GET /api/usage - Aggregate usage data
+app.get('/api/usage', requireAuth, (req, res) => {
+  try {
+    const days = parseInt(req.query.days) || 30;
+    const cutoffTime = Date.now() - (days * 24 * 60 * 60 * 1000);
+    
+    if (!fs.existsSync(SESSIONS_DIR)) {
+      return res.json({ models: {}, totals: { tokens: 0, cost: 0, calls: 0 }, period: days });
+    }
+    
+    const files = fs.readdirSync(SESSIONS_DIR)
+      .filter(f => f.endsWith('.jsonl') && !f.includes('.lock'))
+      .map(f => {
+        const filePath = path.join(SESSIONS_DIR, f);
+        const stat = fs.statSync(filePath);
+        return { name: f, path: filePath, mtime: stat.mtimeMs };
+      })
+      .filter(f => f.mtime >= cutoffTime);
+    
+    const usageList = files.map(f => parseSessionFile(f.path));
+    const aggregated = aggregateUsage(usageList);
+    
+    // Calculate totals
+    let totalTokens = 0;
+    let totalCost = 0;
+    let totalCalls = 0;
+    
+    for (const data of Object.values(aggregated)) {
+      totalTokens += data.totalTokens;
+      totalCost += data.cost;
+      totalCalls += data.calls;
+    }
+    
+    // Add model info and percentage
+    const models = {};
+    for (const [model, data] of Object.entries(aggregated)) {
+      const info = MODEL_INFO[model] || { emoji: '🤖', name: model, color: '#6b7280' };
+      models[model] = {
+        ...data,
+        displayName: info.name,
+        emoji: info.emoji,
+        color: info.color,
+        percentage: totalTokens > 0 ? (data.totalTokens / totalTokens * 100) : 0,
+        costPercentage: totalCost > 0 ? (data.cost / totalCost * 100) : 0
+      };
+    }
+    
+    // Convert cost from USD to EUR (approximate rate)
+    const usdToEur = 0.92;
+    for (const model of Object.values(models)) {
+      model.costEur = model.cost * usdToEur;
+    }
+    
+    res.json({
+      models,
+      totals: {
+        tokens: totalTokens,
+        cost: totalCost,
+        costEur: totalCost * usdToEur,
+        calls: totalCalls
+      },
+      period: days,
+      sessionsProcessed: files.length,
+      timestamp: Date.now()
+    });
+  } catch (e) {
+    console.error('Usage API error:', e);
+    res.status(500).json({ error: 'Failed to aggregate usage data' });
+  }
+});
+
+// ==================== END API USAGE API ====================
+
 // ==================== NEWSLETTERS API ====================
 const NEWSLETTERS_FILE = path.join(process.env.HOME, '.openclaw', 'workspace', 'newsletters.json');
 

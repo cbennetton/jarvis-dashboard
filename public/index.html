@@ -1135,6 +1135,348 @@
 
     .hidden { display: none !important; }
 
+    /* ==================== API USAGE PAGE ==================== */
+    .usage-period-toggle {
+      display: flex;
+      background: var(--bg-secondary);
+      border-radius: 10px;
+      padding: 4px;
+      gap: 4px;
+    }
+
+    .period-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    .period-btn:hover { color: var(--text-secondary); }
+    .period-btn.active { background: var(--accent); color: white; }
+
+    .usage-summary-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 28px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .usage-summary-left {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex: 1;
+      min-width: 250px;
+    }
+
+    .usage-summary-icon {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), #3b82f6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      flex-shrink: 0;
+    }
+
+    .usage-summary-info { flex: 1; min-width: 0; }
+    .usage-summary-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+    .usage-summary-value { font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+    .usage-summary-meta { color: var(--text-secondary); font-size: 14px; }
+
+    .usage-summary-stats {
+      display: flex;
+      gap: 32px;
+      padding-left: 24px;
+      border-left: 1px solid var(--border);
+    }
+
+    .usage-summary-stat { text-align: center; }
+    .usage-summary-stat-value {
+      font-size: 24px;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent), #3b82f6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .usage-summary-stat-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+    }
+
+    .usage-view-toggle {
+      display: flex;
+      background: var(--bg-secondary);
+      border-radius: 12px;
+      padding: 4px;
+      gap: 4px;
+    }
+
+    .view-toggle-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 10px 18px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .view-toggle-btn:hover { color: var(--text-secondary); }
+    .view-toggle-btn.active { background: var(--accent); color: white; }
+
+    .usage-models-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+
+    .usage-model-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      transition: all 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .usage-model-card:hover { border-color: rgba(255,255,255,0.15); transform: translateY(-2px); }
+
+    .usage-model-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--model-color, var(--accent));
+    }
+
+    .usage-model-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .usage-model-emoji { font-size: 32px; }
+
+    .usage-model-info { flex: 1; min-width: 0; }
+    .usage-model-name { font-size: 16px; font-weight: 600; margin-bottom: 2px; }
+    .usage-model-calls { font-size: 12px; color: var(--text-muted); }
+
+    .usage-model-percentage {
+      background: var(--bg-secondary);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .usage-model-main {
+      text-align: center;
+      padding: 20px 0;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+
+    .usage-model-value {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .usage-model-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .usage-model-breakdown {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .usage-breakdown-item {
+      background: var(--bg-secondary);
+      padding: 10px 12px;
+      border-radius: 8px;
+    }
+
+    .usage-breakdown-item-label {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 2px;
+    }
+
+    .usage-breakdown-item-value {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .usage-breakdown-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+    }
+
+    .usage-breakdown-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .usage-breakdown-content {
+      display: grid;
+      gap: 12px;
+    }
+
+    .usage-breakdown-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px;
+      background: var(--bg-secondary);
+      border-radius: 12px;
+    }
+
+    .usage-breakdown-row-emoji { font-size: 24px; flex-shrink: 0; }
+    .usage-breakdown-row-info { flex: 1; min-width: 0; }
+    .usage-breakdown-row-name { font-weight: 500; margin-bottom: 4px; }
+    .usage-breakdown-row-bar {
+      height: 8px;
+      background: var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .usage-breakdown-row-bar-fill {
+      height: 100%;
+      background: var(--model-color, var(--accent));
+      border-radius: 4px;
+      transition: width 0.5s ease;
+    }
+    .usage-breakdown-row-values {
+      text-align: right;
+      flex-shrink: 0;
+    }
+    .usage-breakdown-row-tokens {
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .usage-breakdown-row-cost {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* Responsive usage page */
+    @media (max-width: 768px) {
+      .usage-summary-card {
+        flex-direction: column;
+        padding: 20px;
+        gap: 16px;
+      }
+
+      .usage-summary-left {
+        width: 100%;
+        min-width: auto;
+      }
+
+      .usage-summary-icon {
+        width: 56px;
+        height: 56px;
+        font-size: 26px;
+      }
+
+      .usage-summary-value { font-size: 24px; }
+
+      .usage-summary-stats {
+        width: 100%;
+        padding-left: 0;
+        border-left: none;
+        padding-top: 16px;
+        border-top: 1px solid var(--border);
+        justify-content: center;
+      }
+
+      .usage-view-toggle {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .view-toggle-btn { flex: 1; text-align: center; padding: 10px 12px; font-size: 13px; }
+
+      .usage-models-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+
+      .usage-model-card { padding: 20px; }
+      .usage-model-emoji { font-size: 28px; }
+      .usage-model-value { font-size: 26px; }
+
+      .page-header-actions {
+        flex-direction: column;
+        gap: 12px;
+        width: 100%;
+      }
+
+      .usage-period-toggle {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .period-btn { flex: 1; text-align: center; padding: 8px 10px; font-size: 12px; }
+
+      .usage-breakdown-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+
+      .usage-breakdown-row-values {
+        text-align: left;
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .usage-summary-icon { width: 48px; height: 48px; font-size: 22px; }
+      .usage-summary-value { font-size: 20px; }
+      .usage-model-value { font-size: 22px; }
+    }
+
     /* ==================== NEWSLETTERS PAGE ==================== */
     .page-header-actions {
       display: flex;
@@ -1527,6 +1869,10 @@
           <span class="nav-item-icon">📧</span>
           <span>Newsletters</span>
         </div>
+        <div class="nav-item" data-page="usage">
+          <span class="nav-item-icon">📊</span>
+          <span>API Usage</span>
+        </div>
       </nav>
       <div class="sidebar-footer">
         <div>Jarvis Dashboard v2.0</div>
@@ -1700,6 +2046,68 @@
           <div class="empty-state">
             <div class="empty-state-icon">📧</div>
             <p>Loading newsletters...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- API Usage Page -->
+      <div class="page" id="usagePage">
+        <div class="page-header">
+          <h1 class="page-title">📊 API Usage</h1>
+          <div class="page-header-actions">
+            <div class="usage-period-toggle">
+              <button class="period-btn active" data-days="7">7 days</button>
+              <button class="period-btn" data-days="30">30 days</button>
+              <button class="period-btn" data-days="90">90 days</button>
+            </div>
+            <button class="refresh-btn" id="refreshUsage">
+              <span class="refresh-icon">🔄</span> Refresh
+            </button>
+          </div>
+        </div>
+
+        <!-- Usage Summary Card -->
+        <div class="usage-summary-card">
+          <div class="usage-summary-left">
+            <div class="usage-summary-icon">📈</div>
+            <div class="usage-summary-info">
+              <div class="usage-summary-label">Total Usage</div>
+              <div class="usage-summary-value" id="usageTotalValue">Loading...</div>
+              <div class="usage-summary-meta" id="usageTotalMeta">--</div>
+            </div>
+          </div>
+          <div class="usage-summary-stats">
+            <div class="usage-summary-stat">
+              <div class="usage-summary-stat-value" id="usageTotalCalls">0</div>
+              <div class="usage-summary-stat-label">API Calls</div>
+            </div>
+            <div class="usage-summary-stat">
+              <div class="usage-summary-stat-value" id="usageSessionsCount">0</div>
+              <div class="usage-summary-stat-label">Sessions</div>
+            </div>
+          </div>
+          <div class="usage-view-toggle">
+            <button class="view-toggle-btn active" data-view="tokens">🔢 Tokens</button>
+            <button class="view-toggle-btn" data-view="cost">💶 Cost (€)</button>
+          </div>
+        </div>
+
+        <!-- Model Cards Grid -->
+        <div class="usage-models-grid" id="usageModelsGrid">
+          <div class="empty-state">
+            <div class="empty-state-icon">📊</div>
+            <p>Loading usage data...</p>
+          </div>
+        </div>
+
+        <!-- Usage Breakdown Card -->
+        <div class="usage-breakdown-card">
+          <div class="usage-breakdown-title">📋 Token Breakdown</div>
+          <div class="usage-breakdown-content" id="usageBreakdown">
+            <div class="empty-state">
+              <div class="empty-state-icon">⏳</div>
+              <p>Loading...</p>
+            </div>
           </div>
         </div>
       </div>
@@ -1878,13 +2286,14 @@
       document.getElementById(`${pageName}Page`).classList.add('active');
 
       // Update header title
-      const titles = { home: 'Dashboard', markdowns: 'Markdown Files', skills: 'Skills', newsletters: 'Newsletters' };
+      const titles = { home: 'Dashboard', markdowns: 'Markdown Files', skills: 'Skills', newsletters: 'Newsletters', usage: 'API Usage' };
       document.getElementById('headerPageTitle').textContent = titles[pageName] || 'Dashboard';
 
       // Load page content
       if (pageName === 'markdowns') loadMarkdowns();
       if (pageName === 'skills') loadSkills();
       if (pageName === 'newsletters') loadNewsletters();
+      if (pageName === 'usage') loadUsage();
     }
 
     // ==================== CHARTS ====================
@@ -2888,6 +3297,186 @@
     newsletterModal.addEventListener('click', (e) => {
       if (e.target === newsletterModal) closeNewsletterModal();
     });
+
+    // ==================== API USAGE ====================
+    let usageData = null;
+    let usageViewMode = 'tokens'; // 'tokens' or 'cost'
+    let usagePeriodDays = 7;
+
+    async function loadUsage() {
+      const btn = document.getElementById('refreshUsage');
+      btn.classList.add('loading');
+
+      try {
+        const res = await fetch(`/api/usage?days=${usagePeriodDays}`, { credentials: 'same-origin' });
+        usageData = await res.json();
+        renderUsage();
+      } catch (e) {
+        console.error('Failed to load usage:', e);
+        document.getElementById('usageModelsGrid').innerHTML = 
+          '<div class="empty-state"><div class="empty-state-icon">❌</div><p>Failed to load usage data</p></div>';
+      } finally {
+        btn.classList.remove('loading');
+      }
+    }
+
+    function renderUsage() {
+      if (!usageData) return;
+
+      // Update summary card
+      const totalValue = document.getElementById('usageTotalValue');
+      const totalMeta = document.getElementById('usageTotalMeta');
+      const totalCalls = document.getElementById('usageTotalCalls');
+      const sessionsCount = document.getElementById('usageSessionsCount');
+
+      if (usageViewMode === 'tokens') {
+        totalValue.textContent = formatTokens(usageData.totals.tokens);
+        totalMeta.textContent = `€${usageData.totals.costEur.toFixed(2)} total cost`;
+      } else {
+        totalValue.textContent = `€${usageData.totals.costEur.toFixed(2)}`;
+        totalMeta.textContent = `${formatTokens(usageData.totals.tokens)} tokens`;
+      }
+
+      totalCalls.textContent = usageData.totals.calls.toLocaleString();
+      sessionsCount.textContent = usageData.sessionsProcessed.toLocaleString();
+
+      // Render model cards
+      renderModelCards();
+      
+      // Render breakdown
+      renderUsageBreakdown();
+    }
+
+    function renderModelCards() {
+      const grid = document.getElementById('usageModelsGrid');
+      const models = Object.entries(usageData.models)
+        .sort((a, b) => b[1].totalTokens - a[1].totalTokens);
+
+      if (!models.length) {
+        grid.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">📊</div>
+            <p>No usage data for this period</p>
+          </div>`;
+        return;
+      }
+
+      grid.innerHTML = models.map(([modelId, data]) => {
+        const mainValue = usageViewMode === 'tokens' 
+          ? formatTokens(data.totalTokens)
+          : `€${data.costEur.toFixed(2)}`;
+        const mainLabel = usageViewMode === 'tokens' ? 'Total Tokens' : 'Total Cost';
+        const percentage = usageViewMode === 'tokens'
+          ? data.percentage.toFixed(1)
+          : data.costPercentage.toFixed(1);
+
+        return `
+          <div class="usage-model-card" style="--model-color: ${data.color}">
+            <div class="usage-model-header">
+              <div class="usage-model-emoji">${data.emoji}</div>
+              <div class="usage-model-info">
+                <div class="usage-model-name">${esc(data.displayName)}</div>
+                <div class="usage-model-calls">${data.calls.toLocaleString()} API calls</div>
+              </div>
+              <div class="usage-model-percentage">${percentage}%</div>
+            </div>
+            <div class="usage-model-main">
+              <div class="usage-model-value">${mainValue}</div>
+              <div class="usage-model-label">${mainLabel}</div>
+            </div>
+            <div class="usage-model-breakdown">
+              <div class="usage-breakdown-item">
+                <div class="usage-breakdown-item-label">Input</div>
+                <div class="usage-breakdown-item-value">${formatTokensShort(data.input)}</div>
+              </div>
+              <div class="usage-breakdown-item">
+                <div class="usage-breakdown-item-label">Output</div>
+                <div class="usage-breakdown-item-value">${formatTokensShort(data.output)}</div>
+              </div>
+              <div class="usage-breakdown-item">
+                <div class="usage-breakdown-item-label">Cache Read</div>
+                <div class="usage-breakdown-item-value">${formatTokensShort(data.cacheRead)}</div>
+              </div>
+              <div class="usage-breakdown-item">
+                <div class="usage-breakdown-item-label">Cache Write</div>
+                <div class="usage-breakdown-item-value">${formatTokensShort(data.cacheWrite)}</div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderUsageBreakdown() {
+      const container = document.getElementById('usageBreakdown');
+      const models = Object.entries(usageData.models)
+        .sort((a, b) => b[1].totalTokens - a[1].totalTokens);
+
+      if (!models.length) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">📋</div>
+            <p>No breakdown available</p>
+          </div>`;
+        return;
+      }
+
+      const maxTokens = Math.max(...models.map(([, d]) => d.totalTokens));
+
+      container.innerHTML = models.map(([modelId, data]) => {
+        const barWidth = maxTokens > 0 ? (data.totalTokens / maxTokens * 100) : 0;
+        
+        return `
+          <div class="usage-breakdown-row">
+            <div class="usage-breakdown-row-emoji">${data.emoji}</div>
+            <div class="usage-breakdown-row-info">
+              <div class="usage-breakdown-row-name">${esc(data.displayName)}</div>
+              <div class="usage-breakdown-row-bar">
+                <div class="usage-breakdown-row-bar-fill" style="width: ${barWidth}%; background: ${data.color}"></div>
+              </div>
+            </div>
+            <div class="usage-breakdown-row-values">
+              <div class="usage-breakdown-row-tokens">${formatTokens(data.totalTokens)}</div>
+              <div class="usage-breakdown-row-cost">€${data.costEur.toFixed(2)}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function formatTokens(num) {
+      if (num >= 1000000) return (num / 1000000).toFixed(2) + 'M';
+      if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+      return num.toLocaleString();
+    }
+
+    function formatTokensShort(num) {
+      if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+      if (num >= 1000) return (num / 1000).toFixed(0) + 'K';
+      return num.toLocaleString();
+    }
+
+    // Period toggle
+    document.querySelectorAll('.period-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        usagePeriodDays = parseInt(btn.dataset.days);
+        loadUsage();
+      });
+    });
+
+    // View toggle
+    document.querySelectorAll('.view-toggle-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.view-toggle-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        usageViewMode = btn.dataset.view;
+        renderUsage();
+      });
+    });
+
+    document.getElementById('refreshUsage').addEventListener('click', () => loadUsage());
 
     // ==================== UTILITIES ====================
     function esc(t) {
