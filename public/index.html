@@ -1134,6 +1134,347 @@
     ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 
     .hidden { display: none !important; }
+
+    /* ==================== NEWSLETTERS PAGE ==================== */
+    .page-header-actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .add-btn {
+      background: var(--accent);
+      border: none;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+      font-weight: 500;
+    }
+    .add-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px var(--accent-glow); }
+
+    .newsletters-container {
+      display: grid;
+      gap: 20px;
+    }
+
+    .newsletter-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      transition: all 0.2s;
+    }
+    .newsletter-card:hover { border-color: rgba(255,255,255,0.15); }
+    .newsletter-card.disabled { opacity: 0.6; }
+
+    .newsletter-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      gap: 16px;
+    }
+
+    .newsletter-recipient {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .newsletter-name {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .newsletter-email {
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    .newsletter-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-badge {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .status-badge.enabled {
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--accent);
+    }
+    .status-badge.disabled {
+      background: rgba(239, 68, 68, 0.2);
+      color: var(--danger);
+    }
+
+    .newsletter-toggle {
+      position: relative;
+      width: 48px;
+      height: 26px;
+      background: var(--inactive);
+      border-radius: 13px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .newsletter-toggle.enabled { background: var(--accent); }
+    .newsletter-toggle::after {
+      content: '';
+      position: absolute;
+      width: 22px;
+      height: 22px;
+      background: white;
+      border-radius: 50%;
+      top: 2px;
+      left: 2px;
+      transition: all 0.3s;
+    }
+    .newsletter-toggle.enabled::after { left: 24px; }
+
+    .newsletter-body {
+      display: grid;
+      gap: 16px;
+    }
+
+    .newsletter-info-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+
+    .newsletter-info-item {
+      background: var(--bg-secondary);
+      padding: 12px 16px;
+      border-radius: 10px;
+    }
+
+    .newsletter-info-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .newsletter-info-value {
+      font-size: 14px;
+      color: var(--text-primary);
+      word-break: break-word;
+    }
+
+    .newsletter-prompt {
+      background: var(--bg-secondary);
+      padding: 16px;
+      border-radius: 10px;
+      border-left: 3px solid var(--accent);
+    }
+
+    .newsletter-prompt-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .newsletter-prompt-text {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      white-space: pre-wrap;
+    }
+
+    .newsletter-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    .newsletter-meta {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .newsletter-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .newsletter-action-btn {
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-secondary);
+    }
+    .newsletter-action-btn:hover { background: var(--bg-secondary); color: var(--text-primary); }
+    .newsletter-action-btn.delete:hover { background: rgba(239, 68, 68, 0.2); color: var(--danger); border-color: var(--danger); }
+
+    /* Newsletter Modal */
+    .newsletter-modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 600;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+    }
+    .newsletter-modal-overlay.open { display: flex; }
+
+    .newsletter-modal {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 600px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .newsletter-modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .newsletter-modal-title {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .newsletter-modal-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 24px;
+      cursor: pointer;
+    }
+
+    .newsletter-modal-body {
+      padding: 24px;
+    }
+
+    .newsletter-form-group {
+      margin-bottom: 20px;
+    }
+
+    .newsletter-form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .newsletter-form-input,
+    .newsletter-form-textarea,
+    .newsletter-form-select {
+      width: 100%;
+      padding: 12px 14px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text-primary);
+      font-size: 14px;
+    }
+    .newsletter-form-input:focus,
+    .newsletter-form-textarea:focus,
+    .newsletter-form-select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .newsletter-form-textarea {
+      min-height: 120px;
+      resize: vertical;
+      font-family: inherit;
+    }
+
+    .newsletter-form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .newsletter-modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    .newsletter-modal-btn {
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .newsletter-modal-btn.cancel {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+    }
+    .newsletter-modal-btn.cancel:hover { background: var(--bg-card); }
+
+    .newsletter-modal-btn.save {
+      background: var(--accent);
+      border: none;
+      color: white;
+    }
+    .newsletter-modal-btn.save:hover { opacity: 0.9; }
+
+    /* Responsive newsletters */
+    @media (max-width: 768px) {
+      .page-header-actions { flex-wrap: wrap; }
+      .add-btn { padding: 8px 12px; font-size: 12px; }
+      
+      .newsletter-card { padding: 16px; }
+      .newsletter-header { flex-direction: column; gap: 12px; }
+      .newsletter-name { font-size: 16px; }
+      .newsletter-status { align-self: flex-start; }
+      
+      .newsletter-info-row { grid-template-columns: 1fr; }
+      
+      .newsletter-footer { flex-direction: column; gap: 12px; align-items: stretch; }
+      .newsletter-actions { justify-content: flex-end; }
+      
+      .newsletter-form-row { grid-template-columns: 1fr; }
+      
+      .newsletter-modal { max-height: 85vh; }
+      .newsletter-modal-header { padding: 16px 20px; }
+      .newsletter-modal-body { padding: 20px; }
+    }
   </style>
 </head>
 <body>
@@ -1181,6 +1522,10 @@
         <div class="nav-item" data-page="skills">
           <span class="nav-item-icon">⚡</span>
           <span>Skills</span>
+        </div>
+        <div class="nav-item" data-page="newsletters">
+          <span class="nav-item-icon">📧</span>
+          <span>Newsletters</span>
         </div>
       </nav>
       <div class="sidebar-footer">
@@ -1337,6 +1682,27 @@
           </div>
         </div>
       </div>
+
+      <!-- Newsletters Page -->
+      <div class="page" id="newslettersPage">
+        <div class="page-header">
+          <h1 class="page-title">📧 Newsletters</h1>
+          <div class="page-header-actions">
+            <button class="refresh-btn" id="refreshNewsletters">
+              <span class="refresh-icon">🔄</span> Refresh
+            </button>
+            <button class="add-btn" id="addNewsletterBtn">
+              <span>➕</span> Add Newsletter
+            </button>
+          </div>
+        </div>
+        <div class="newsletters-container" id="newslettersContainer">
+          <div class="empty-state">
+            <div class="empty-state-icon">📧</div>
+            <p>Loading newsletters...</p>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -1367,6 +1733,70 @@
   <!-- Update Indicator -->
   <div class="update-indicator" id="updateIndicator">
     <span>🔔</span> Files updated - click to refresh
+  </div>
+
+  <!-- Newsletter Modal -->
+  <div class="newsletter-modal-overlay" id="newsletterModal">
+    <div class="newsletter-modal">
+      <div class="newsletter-modal-header">
+        <h3 class="newsletter-modal-title" id="newsletterModalTitle">Add Newsletter</h3>
+        <button class="newsletter-modal-close" id="newsletterModalClose">×</button>
+      </div>
+      <div class="newsletter-modal-body">
+        <input type="hidden" id="newsletterEditId">
+        <div class="newsletter-form-row">
+          <div class="newsletter-form-group">
+            <label class="newsletter-form-label">Recipient Name</label>
+            <input type="text" class="newsletter-form-input" id="newsletterRecipientName" placeholder="e.g., Mom">
+          </div>
+          <div class="newsletter-form-group">
+            <label class="newsletter-form-label">Email Address</label>
+            <input type="email" class="newsletter-form-input" id="newsletterRecipientEmail" placeholder="email@example.com">
+          </div>
+        </div>
+        <div class="newsletter-form-row">
+          <div class="newsletter-form-group">
+            <label class="newsletter-form-label">Send Time</label>
+            <input type="time" class="newsletter-form-input" id="newsletterTime" value="09:00">
+          </div>
+          <div class="newsletter-form-group">
+            <label class="newsletter-form-label">Timezone</label>
+            <select class="newsletter-form-select" id="newsletterTimezone">
+              <option value="UTC">UTC</option>
+              <option value="Europe/Berlin">Europe/Berlin</option>
+              <option value="Europe/London">Europe/London</option>
+              <option value="America/New_York">America/New York</option>
+              <option value="America/Los_Angeles">America/Los Angeles</option>
+              <option value="America/Chicago">America/Chicago</option>
+              <option value="Asia/Tokyo">Asia/Tokyo</option>
+              <option value="Asia/Shanghai">Asia/Shanghai</option>
+              <option value="Australia/Sydney">Australia/Sydney</option>
+            </select>
+          </div>
+        </div>
+        <div class="newsletter-form-group">
+          <label class="newsletter-form-label">Language</label>
+          <select class="newsletter-form-select" id="newsletterLanguage">
+            <option value="English">English</option>
+            <option value="German">German</option>
+            <option value="Spanish">Spanish</option>
+            <option value="French">French</option>
+            <option value="Italian">Italian</option>
+            <option value="Portuguese">Portuguese</option>
+            <option value="Japanese">Japanese</option>
+            <option value="Chinese">Chinese</option>
+          </select>
+        </div>
+        <div class="newsletter-form-group">
+          <label class="newsletter-form-label">Prompt / Instructions</label>
+          <textarea class="newsletter-form-textarea" id="newsletterPrompt" placeholder="Describe what kind of newsletter content to generate..."></textarea>
+        </div>
+      </div>
+      <div class="newsletter-modal-footer">
+        <button class="newsletter-modal-btn cancel" id="newsletterModalCancel">Cancel</button>
+        <button class="newsletter-modal-btn save" id="newsletterModalSave">Save Newsletter</button>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -1448,12 +1878,13 @@
       document.getElementById(`${pageName}Page`).classList.add('active');
 
       // Update header title
-      const titles = { home: 'Dashboard', markdowns: 'Markdown Files', skills: 'Skills' };
+      const titles = { home: 'Dashboard', markdowns: 'Markdown Files', skills: 'Skills', newsletters: 'Newsletters' };
       document.getElementById('headerPageTitle').textContent = titles[pageName] || 'Dashboard';
 
       // Load page content
       if (pageName === 'markdowns') loadMarkdowns();
       if (pageName === 'skills') loadSkills();
+      if (pageName === 'newsletters') loadNewsletters();
     }
 
     // ==================== CHARTS ====================
@@ -2229,6 +2660,234 @@
     chatOverlay.addEventListener('click', e => { if (e.target === chatOverlay) chatOverlay.classList.remove('open'); });
     document.getElementById('chatSend').addEventListener('click', sendChat);
     chatInput.addEventListener('keypress', e => { if (e.key === 'Enter') sendChat(); });
+
+    // ==================== NEWSLETTERS ====================
+    let newsletters = [];
+    const newsletterModal = document.getElementById('newsletterModal');
+
+    async function loadNewsletters() {
+      const btn = document.getElementById('refreshNewsletters');
+      btn.classList.add('loading');
+
+      try {
+        const res = await fetch('/api/newsletters', { credentials: 'same-origin' });
+        newsletters = await res.json();
+        renderNewsletters();
+      } catch (e) {
+        console.error('Failed to load newsletters:', e);
+        document.getElementById('newslettersContainer').innerHTML = 
+          '<div class="empty-state"><div class="empty-state-icon">❌</div><p>Failed to load newsletters</p></div>';
+      } finally {
+        btn.classList.remove('loading');
+      }
+    }
+
+    function renderNewsletters() {
+      const container = document.getElementById('newslettersContainer');
+      
+      if (!newsletters.length) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">📧</div>
+            <p>No newsletters configured yet</p>
+            <p style="color: var(--text-muted); font-size: 14px; margin-top: 8px;">Click "Add Newsletter" to create one</p>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = newsletters.map(nl => {
+        const scheduleText = formatSchedule(nl.schedule);
+        const lastSentText = nl.lastSent ? `Last sent: ${new Date(nl.lastSent).toLocaleString()}` : 'Never sent';
+        
+        return `
+          <div class="newsletter-card ${nl.enabled ? '' : 'disabled'}" data-id="${nl.id}">
+            <div class="newsletter-header">
+              <div class="newsletter-recipient">
+                <div class="newsletter-name">
+                  ${nl.enabled ? '✉️' : '📪'} ${esc(nl.recipient.name || 'Unnamed')}
+                </div>
+                <div class="newsletter-email">${esc(nl.recipient.email)}</div>
+              </div>
+              <div class="newsletter-status">
+                <span class="status-badge ${nl.enabled ? 'enabled' : 'disabled'}">
+                  ${nl.enabled ? '✓ Active' : '⏸ Paused'}
+                </span>
+                <div class="newsletter-toggle ${nl.enabled ? 'enabled' : ''}" 
+                     onclick="toggleNewsletter('${nl.id}', ${!nl.enabled})"
+                     title="${nl.enabled ? 'Click to disable' : 'Click to enable'}"></div>
+              </div>
+            </div>
+            <div class="newsletter-body">
+              <div class="newsletter-info-row">
+                <div class="newsletter-info-item">
+                  <div class="newsletter-info-label">📅 Schedule</div>
+                  <div class="newsletter-info-value">${scheduleText}</div>
+                </div>
+                <div class="newsletter-info-item">
+                  <div class="newsletter-info-label">🌐 Language</div>
+                  <div class="newsletter-info-value">${esc(nl.language || 'English')}</div>
+                </div>
+                <div class="newsletter-info-item">
+                  <div class="newsletter-info-label">⏰ Cron</div>
+                  <div class="newsletter-info-value"><code>${esc(nl.schedule.cron)}</code></div>
+                </div>
+              </div>
+              <div class="newsletter-prompt">
+                <div class="newsletter-prompt-label">📝 Prompt</div>
+                <div class="newsletter-prompt-text">${esc(nl.prompt || 'No prompt configured')}</div>
+              </div>
+            </div>
+            <div class="newsletter-footer">
+              <div class="newsletter-meta">
+                ${lastSentText} · Created: ${new Date(nl.createdAt).toLocaleDateString()}
+              </div>
+              <div class="newsletter-actions">
+                <button class="newsletter-action-btn" onclick="editNewsletter('${nl.id}')">✏️ Edit</button>
+                <button class="newsletter-action-btn delete" onclick="deleteNewsletter('${nl.id}')">🗑️ Delete</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function formatSchedule(schedule) {
+      if (!schedule) return 'Not configured';
+      const time = schedule.time || 'Unknown time';
+      const tz = schedule.timezone || 'UTC';
+      return `${time} (${tz})`;
+    }
+
+    function timeToCron(time) {
+      if (!time) return '0 9 * * *';
+      const [hours, minutes] = time.split(':');
+      return `${parseInt(minutes)} ${parseInt(hours)} * * *`;
+    }
+
+    function cronToTime(cron) {
+      if (!cron) return '09:00';
+      const parts = cron.split(' ');
+      if (parts.length < 2) return '09:00';
+      const minutes = parts[0].padStart(2, '0');
+      const hours = parts[1].padStart(2, '0');
+      return `${hours}:${minutes}`;
+    }
+
+    async function toggleNewsletter(id, enabled) {
+      try {
+        const res = await fetch(`/api/newsletters/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify({ enabled })
+        });
+        if (res.ok) {
+          loadNewsletters();
+        }
+      } catch (e) {
+        console.error('Toggle failed:', e);
+      }
+    }
+
+    function openNewsletterModal(newsletter = null) {
+      const isEdit = !!newsletter;
+      document.getElementById('newsletterModalTitle').textContent = isEdit ? 'Edit Newsletter' : 'Add Newsletter';
+      document.getElementById('newsletterEditId').value = isEdit ? newsletter.id : '';
+      
+      document.getElementById('newsletterRecipientName').value = isEdit ? newsletter.recipient.name : '';
+      document.getElementById('newsletterRecipientEmail').value = isEdit ? newsletter.recipient.email : '';
+      document.getElementById('newsletterTime').value = isEdit ? cronToTime(newsletter.schedule.cron) : '09:00';
+      document.getElementById('newsletterTimezone').value = isEdit ? newsletter.schedule.timezone : 'UTC';
+      document.getElementById('newsletterLanguage').value = isEdit ? newsletter.language : 'English';
+      document.getElementById('newsletterPrompt').value = isEdit ? newsletter.prompt : '';
+      
+      newsletterModal.classList.add('open');
+    }
+
+    function closeNewsletterModal() {
+      newsletterModal.classList.remove('open');
+    }
+
+    function editNewsletter(id) {
+      const newsletter = newsletters.find(n => n.id === id);
+      if (newsletter) openNewsletterModal(newsletter);
+    }
+
+    async function saveNewsletter() {
+      const editId = document.getElementById('newsletterEditId').value;
+      const time = document.getElementById('newsletterTime').value;
+      const timezone = document.getElementById('newsletterTimezone').value;
+      
+      // Format time for display
+      const [hours, minutes] = time.split(':');
+      const hour12 = parseInt(hours) % 12 || 12;
+      const ampm = parseInt(hours) < 12 ? 'AM' : 'PM';
+      const timeDisplay = `${hour12}:${minutes} ${ampm}`;
+      
+      const data = {
+        recipient: {
+          name: document.getElementById('newsletterRecipientName').value,
+          email: document.getElementById('newsletterRecipientEmail').value
+        },
+        schedule: {
+          time: timeDisplay,
+          timezone: timezone,
+          cron: timeToCron(time)
+        },
+        language: document.getElementById('newsletterLanguage').value,
+        prompt: document.getElementById('newsletterPrompt').value,
+        enabled: true
+      };
+
+      try {
+        const url = editId ? `/api/newsletters/${editId}` : '/api/newsletters';
+        const method = editId ? 'PUT' : 'POST';
+        
+        const res = await fetch(url, {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify(data)
+        });
+
+        if (res.ok) {
+          closeNewsletterModal();
+          loadNewsletters();
+        } else {
+          const err = await res.json();
+          alert('Error: ' + (err.error || 'Failed to save'));
+        }
+      } catch (e) {
+        console.error('Save failed:', e);
+        alert('Failed to save newsletter');
+      }
+    }
+
+    async function deleteNewsletter(id) {
+      if (!confirm('Are you sure you want to delete this newsletter?')) return;
+      
+      try {
+        const res = await fetch(`/api/newsletters/${id}`, {
+          method: 'DELETE',
+          credentials: 'same-origin'
+        });
+        if (res.ok) {
+          loadNewsletters();
+        }
+      } catch (e) {
+        console.error('Delete failed:', e);
+      }
+    }
+
+    // Newsletter event listeners
+    document.getElementById('addNewsletterBtn').addEventListener('click', () => openNewsletterModal());
+    document.getElementById('newsletterModalClose').addEventListener('click', closeNewsletterModal);
+    document.getElementById('newsletterModalCancel').addEventListener('click', closeNewsletterModal);
+    document.getElementById('newsletterModalSave').addEventListener('click', saveNewsletter);
+    document.getElementById('refreshNewsletters').addEventListener('click', () => loadNewsletters());
+    newsletterModal.addEventListener('click', (e) => {
+      if (e.target === newsletterModal) closeNewsletterModal();
+    });
 
     // ==================== UTILITIES ====================
     function esc(t) {

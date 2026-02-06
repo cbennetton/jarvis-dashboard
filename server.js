@@ -490,6 +490,104 @@ app.get('/api/changes', requireAuth, (req, res) => {
 
 // ==================== END MARKDOWN & SKILLS API ====================
 
+// ==================== NEWSLETTERS API ====================
+const NEWSLETTERS_FILE = path.join(process.env.HOME, '.openclaw', 'workspace', 'newsletters.json');
+
+function loadNewsletters() {
+  try {
+    if (fs.existsSync(NEWSLETTERS_FILE)) {
+      return JSON.parse(fs.readFileSync(NEWSLETTERS_FILE, 'utf8'));
+    }
+  } catch (e) {
+    console.error('Newsletters load error:', e);
+  }
+  return [];
+}
+
+function saveNewsletters(data) {
+  fs.writeFileSync(NEWSLETTERS_FILE, JSON.stringify(data, null, 2));
+}
+
+// GET all newsletters
+app.get('/api/newsletters', requireAuth, (req, res) => {
+  try {
+    const newsletters = loadNewsletters();
+    res.json(newsletters);
+  } catch (e) {
+    console.error('Newsletters API error:', e);
+    res.status(500).json({ error: 'Failed to load newsletters' });
+  }
+});
+
+// POST new newsletter
+app.post('/api/newsletters', requireAuth, (req, res) => {
+  try {
+    const newsletters = loadNewsletters();
+    const newNewsletter = {
+      id: 'newsletter-' + Date.now().toString(36),
+      recipient: req.body.recipient || { name: '', email: '' },
+      schedule: req.body.schedule || { time: '9:00 AM', timezone: 'UTC', cron: '0 9 * * *' },
+      prompt: req.body.prompt || '',
+      language: req.body.language || 'English',
+      enabled: req.body.enabled !== false,
+      createdAt: new Date().toISOString(),
+      cronJobId: null
+    };
+    newsletters.push(newNewsletter);
+    saveNewsletters(newsletters);
+    res.json({ success: true, newsletter: newNewsletter });
+  } catch (e) {
+    console.error('Newsletter create error:', e);
+    res.status(500).json({ error: 'Failed to create newsletter' });
+  }
+});
+
+// PUT update newsletter
+app.put('/api/newsletters/:id', requireAuth, (req, res) => {
+  try {
+    const newsletters = loadNewsletters();
+    const idx = newsletters.findIndex(n => n.id === req.params.id);
+    if (idx === -1) {
+      return res.status(404).json({ error: 'Newsletter not found' });
+    }
+    
+    // Update fields
+    const updates = req.body;
+    if (updates.recipient) newsletters[idx].recipient = updates.recipient;
+    if (updates.schedule) newsletters[idx].schedule = updates.schedule;
+    if (updates.prompt !== undefined) newsletters[idx].prompt = updates.prompt;
+    if (updates.language) newsletters[idx].language = updates.language;
+    if (updates.enabled !== undefined) newsletters[idx].enabled = updates.enabled;
+    if (updates.lastSent) newsletters[idx].lastSent = updates.lastSent;
+    
+    saveNewsletters(newsletters);
+    res.json({ success: true, newsletter: newsletters[idx] });
+  } catch (e) {
+    console.error('Newsletter update error:', e);
+    res.status(500).json({ error: 'Failed to update newsletter' });
+  }
+});
+
+// DELETE newsletter
+app.delete('/api/newsletters/:id', requireAuth, (req, res) => {
+  try {
+    const newsletters = loadNewsletters();
+    const idx = newsletters.findIndex(n => n.id === req.params.id);
+    if (idx === -1) {
+      return res.status(404).json({ error: 'Newsletter not found' });
+    }
+    
+    newsletters.splice(idx, 1);
+    saveNewsletters(newsletters);
+    res.json({ success: true });
+  } catch (e) {
+    console.error('Newsletter delete error:', e);
+    res.status(500).json({ error: 'Failed to delete newsletter' });
+  }
+});
+
+// ==================== END NEWSLETTERS API ====================
+
 // Internal API
 const API_KEY = 'jarvis-secret-key-xK9mP2nQ7vL4';
 app.post('/api/internal/status', (req, res) => {
