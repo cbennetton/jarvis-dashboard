@@ -552,6 +552,7 @@
       display: grid;
       grid-template-columns: repeat(7, 1fr);
       gap: 6px;
+      width: 100%;
     }
 
     .calendar-weekday {
@@ -649,8 +650,7 @@
       display: none;
       flex-direction: column;
       gap: 8px;
-      overflow: hidden;
-      max-width: 100%;
+      width: 100%;
     }
 
     .calendar-week-day {
@@ -662,7 +662,7 @@
       min-height: 70px;
       transition: all 0.25s ease;
       border: 1px solid transparent;
-      max-width: 100%;
+      width: 100%;
     }
 
     .calendar-week-day:active {
@@ -724,7 +724,6 @@
       justify-content: center;
       gap: 4px;
       overflow: hidden;
-      max-width: 100%;
       min-width: 0;
     }
 
@@ -738,8 +737,6 @@
       background: rgba(16, 185, 129, 0.12);
       border-radius: 6px;
       border-left: 3px solid var(--accent);
-      max-width: 100%;
-      word-break: break-word;
     }
 
     .calendar-week-activity-count {
@@ -776,8 +773,7 @@
       display: none;
       grid-template-columns: repeat(7, 1fr);
       gap: 4px;
-      overflow: hidden;
-      max-width: 100%;
+      width: 100%;
     }
 
     .calendar-grid-mobile .calendar-weekday {
@@ -795,7 +791,6 @@
       align-items: center;
       justify-content: flex-start;
       overflow: hidden;
-      max-width: 100%;
     }
 
     .calendar-grid-mobile .calendar-day-number {
@@ -1264,6 +1259,9 @@
     }
 
     @media (max-width: 768px) {
+      /* Prevent horizontal scroll on mobile */
+      body { overflow-x: hidden; }
+      
       /* Status card mobile */
       .status-activity-top { flex-direction: column; text-align: center; gap: 16px; }
       .status-stats-right { 
@@ -1290,7 +1288,7 @@
       .logout-btn { padding: 6px 12px; font-size: 13px; }
       
       /* Page container mobile */
-      .page-container { padding: 12px; }
+      .page-container { padding: 12px; width: 100%; max-width: 100%; box-sizing: border-box; }
       .page-header { flex-direction: column; gap: 12px; align-items: stretch; }
       .page-title { font-size: 20px; }
       .refresh-btn { align-self: flex-end; }
@@ -1327,8 +1325,8 @@
       /* Calendar mobile portrait - Show vertical week list */
       .calendar-card { 
         padding: 16px; 
-        overflow-x: hidden;
-        max-width: 100%;
+        width: 100%;
+        box-sizing: border-box;
       }
       .calendar-header { flex-direction: column; gap: 12px; align-items: stretch; }
       .calendar-header > div { width: 100%; justify-content: space-between; display: flex; }
