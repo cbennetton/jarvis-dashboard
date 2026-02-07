@@ -289,7 +289,7 @@
     .refresh-btn.loading .refresh-icon { animation: spin 1s linear infinite; }
     @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-    /* Status Card */
+    /* Status Card - Enhanced Design */
     .status-activity-card {
       background: var(--bg-card);
       backdrop-filter: blur(20px);
@@ -299,11 +299,46 @@
       margin-bottom: 24px;
     }
 
-    .status-activity-top {
+    /* Hero Status Section */
+    .hero-status {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    /* Main Agent Status */
+    .main-agent-status {
       display: flex;
       align-items: center;
-      gap: 24px;
-      margin-bottom: 20px;
+      gap: 20px;
+      padding: 20px;
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(59, 130, 246, 0.05) 100%);
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .main-agent-status::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent), #3b82f6);
+      opacity: 0.5;
+    }
+
+    .main-agent-status.active::before {
+      opacity: 1;
+      animation: shimmer 2s ease-in-out infinite;
+    }
+
+    @keyframes shimmer {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
     }
 
     .status-indicator {
@@ -314,13 +349,19 @@
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
+      position: relative;
     }
+
     .status-indicator.active {
       background: var(--accent);
       box-shadow: 0 0 40px var(--accent-glow), 0 0 80px var(--accent-glow);
       animation: pulse 2s ease-in-out infinite;
     }
-    .status-indicator.inactive { background: var(--inactive); box-shadow: 0 0 20px var(--inactive-glow); }
+
+    .status-indicator.inactive { 
+      background: var(--inactive); 
+      box-shadow: 0 0 20px var(--inactive-glow); 
+    }
 
     @keyframes pulse {
       0%, 100% { transform: scale(1); opacity: 1; }
@@ -328,10 +369,20 @@
     }
 
     .status-icon { font-size: 32px; }
+    
     .status-info { flex: 1; min-width: 0; }
-    .status-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+    .agent-name { font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600; margin-bottom: 4px; }
     .status-task { font-size: 20px; font-weight: 600; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .status-time { color: var(--text-secondary); font-size: 13px; }
+    .status-time { color: var(--text-secondary); font-size: 13px; display: flex; align-items: center; gap: 8px; }
+    .status-time .duration { font-weight: 500; color: var(--accent); }
+
+    .status-stats-right {
+      display: flex;
+      gap: 24px;
+      margin-left: auto;
+      padding-left: 24px;
+      border-left: 1px solid var(--border);
+    }
 
     .mini-stat { text-align: center; }
     .mini-stat-value {
@@ -350,12 +401,149 @@
       margin-top: 2px;
     }
 
-    .status-stats-right {
+    /* Sub-agents Section */
+    .subagents-section {
+      padding: 16px 20px;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 16px;
+      border: 1px solid var(--border);
+    }
+
+    .subagents-header {
       display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .subagents-title {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .subagents-count {
+      background: var(--accent);
+      color: white;
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-weight: 600;
+    }
+
+    .subagents-count.empty {
+      background: var(--inactive);
+    }
+
+    .subagents-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .subagent-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      background: var(--bg-secondary);
+      border-radius: 12px;
+      border: 1px solid transparent;
+      transition: all 0.2s ease;
+    }
+
+    .subagent-item:hover {
+      border-color: var(--border);
+      transform: translateX(4px);
+    }
+
+    .subagent-item.active {
+      border-color: rgba(16, 185, 129, 0.3);
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, var(--bg-secondary) 100%);
+    }
+
+    .subagent-indicator {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .subagent-indicator.active {
+      background: var(--accent);
+      box-shadow: 0 0 10px var(--accent-glow);
+      animation: subpulse 1.5s ease-in-out infinite;
+    }
+
+    .subagent-indicator.inactive {
+      background: var(--inactive);
+    }
+
+    @keyframes subpulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(1.2); }
+    }
+
+    .subagent-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .subagent-task {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 2px;
+    }
+
+    .subagent-meta {
+      font-size: 11px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .subagent-id {
+      font-family: 'JetBrains Mono', monospace;
+      background: var(--bg-card);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+    }
+
+    .subagent-duration {
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    .subagents-empty {
+      text-align: center;
+      padding: 20px;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    .subagents-empty-icon {
+      font-size: 24px;
+      margin-bottom: 8px;
+      opacity: 0.5;
+    }
+
+    /* Legacy support */
+    .status-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+    .status-activity-top {
+      display: flex;
+      align-items: center;
       gap: 24px;
-      margin-left: auto;
-      padding-left: 24px;
-      border-left: 1px solid var(--border);
+      margin-bottom: 20px;
     }
 
     /* Charts Section */
@@ -1274,7 +1462,13 @@
       body { overflow-x: hidden; }
       
       /* Status card mobile */
-      .status-activity-top { flex-direction: column; text-align: center; gap: 16px; }
+      .hero-status { gap: 16px; }
+      .main-agent-status { 
+        flex-direction: column; 
+        text-align: center; 
+        gap: 16px;
+        padding: 16px;
+      }
       .status-stats-right { 
         margin-left: 0; 
         padding-left: 0; 
@@ -1286,7 +1480,15 @@
       }
       .status-indicator { width: 60px; height: 60px; }
       .status-icon { font-size: 28px; }
-      .status-task { font-size: 18px; }
+      .status-task { font-size: 18px; white-space: normal; }
+      .agent-name { font-size: 10px; }
+      .status-time { justify-content: center; flex-wrap: wrap; }
+      
+      /* Subagents mobile */
+      .subagents-section { padding: 12px 14px; }
+      .subagent-item { padding: 10px 12px; }
+      .subagent-task { font-size: 12px; white-space: normal; }
+      .subagent-meta { font-size: 10px; flex-wrap: wrap; }
       
       /* Login mobile */
       .login-card { padding: 28px 20px; }
@@ -2508,25 +2710,47 @@
     <div class="page-container">
       <!-- Home Page -->
       <div class="page active" id="homePage">
-        <!-- Status Card -->
+        <!-- Enhanced Status Card -->
         <div class="status-activity-card">
-          <div class="status-activity-top">
-            <div class="status-indicator" id="statusIndicator">
-              <span class="status-icon" id="statusIcon">💤</span>
-            </div>
-            <div class="status-info">
-              <div class="status-label">Current Status</div>
-              <div class="status-task" id="statusTask">Idle</div>
-              <div class="status-time" id="statusTime">No active tasks</div>
-            </div>
-            <div class="status-stats-right">
-              <div class="mini-stat">
-                <div class="mini-stat-value" id="statToday">0</div>
-                <div class="mini-stat-label">Today</div>
+          <!-- Hero Status Section -->
+          <div class="hero-status">
+            <!-- Main Agent (Jarvis) Status -->
+            <div class="main-agent-status" id="mainAgentStatus">
+              <div class="status-indicator" id="statusIndicator">
+                <span class="status-icon" id="statusIcon">💤</span>
               </div>
-              <div class="mini-stat">
-                <div class="mini-stat-value" id="statTotal">0</div>
-                <div class="mini-stat-label">Total</div>
+              <div class="status-info">
+                <div class="agent-name">🤖 JARVIS — Main Agent</div>
+                <div class="status-task" id="statusTask">Idle</div>
+                <div class="status-time" id="statusTime">
+                  <span>No active tasks</span>
+                </div>
+              </div>
+              <div class="status-stats-right">
+                <div class="mini-stat">
+                  <div class="mini-stat-value" id="statToday">0</div>
+                  <div class="mini-stat-label">Today</div>
+                </div>
+                <div class="mini-stat">
+                  <div class="mini-stat-value" id="statTotal">0</div>
+                  <div class="mini-stat-label">Total</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sub-agents Section -->
+            <div class="subagents-section" id="subagentsSection">
+              <div class="subagents-header">
+                <div class="subagents-title">
+                  <span>🔄 Sub-Agents</span>
+                  <span class="subagents-count empty" id="subagentsCount">0</span>
+                </div>
+              </div>
+              <div class="subagents-list" id="subagentsList">
+                <div class="subagents-empty">
+                  <div class="subagents-empty-icon">😴</div>
+                  <div>No sub-agents running</div>
+                </div>
               </div>
             </div>
           </div>
@@ -2886,7 +3110,12 @@
       initChartToggle();
       renderCalendar();
       loadData();
-      setInterval(loadData, 5000);
+      loadSubagents();
+      // Poll for status updates every 10 seconds
+      setInterval(() => {
+        loadData();
+        loadSubagents();
+      }, 10000);
       startChangeDetection();
     }
 
@@ -3005,19 +3234,90 @@
       const icon = document.getElementById('statusIcon');
       const task = document.getElementById('statusTask');
       const time = document.getElementById('statusTime');
+      const mainAgentStatus = document.getElementById('mainAgentStatus');
 
       if (status.active) {
         indicator.className = 'status-indicator active';
+        mainAgentStatus.className = 'main-agent-status active';
         icon.textContent = '⚡';
         task.textContent = status.task || 'Working...';
-        const elapsed = Math.round((Date.now() - status.startedAt) / 60000);
-        time.textContent = `Active for ${elapsed} minute${elapsed !== 1 ? 's' : ''}`;
+        const elapsed = formatDuration(Date.now() - status.startedAt);
+        time.innerHTML = `<span>Active</span><span class="duration">• ${elapsed}</span>`;
       } else {
         indicator.className = 'status-indicator inactive';
+        mainAgentStatus.className = 'main-agent-status';
         icon.textContent = '💤';
         task.textContent = 'Idle';
-        time.textContent = 'No active tasks';
+        time.innerHTML = '<span>No active tasks</span>';
       }
+    }
+
+    // Format duration in human-readable format
+    function formatDuration(ms) {
+      if (!ms || ms < 0) return '0s';
+      const seconds = Math.floor(ms / 1000);
+      const minutes = Math.floor(seconds / 60);
+      const hours = Math.floor(minutes / 60);
+      
+      if (hours > 0) {
+        const mins = minutes % 60;
+        return `${hours}h ${mins}m`;
+      } else if (minutes > 0) {
+        const secs = seconds % 60;
+        return `${minutes}m ${secs}s`;
+      } else {
+        return `${seconds}s`;
+      }
+    }
+
+    // Load subagent status
+    async function loadSubagents() {
+      try {
+        const res = await fetch('/api/subagents', { credentials: 'same-origin' });
+        if (!res.ok) return;
+        const data = await res.json();
+        renderSubagents(data);
+      } catch (e) {
+        console.error('Failed to load subagents:', e);
+      }
+    }
+
+    // Render subagents list
+    function renderSubagents(data) {
+      const list = document.getElementById('subagentsList');
+      const count = document.getElementById('subagentsCount');
+      
+      const activeCount = data.activeCount || 0;
+      count.textContent = activeCount;
+      count.className = activeCount > 0 ? 'subagents-count' : 'subagents-count empty';
+
+      if (!data.subagents || data.subagents.length === 0) {
+        list.innerHTML = `
+          <div class="subagents-empty">
+            <div class="subagents-empty-icon">😴</div>
+            <div>No sub-agents running</div>
+          </div>
+        `;
+        return;
+      }
+
+      list.innerHTML = data.subagents.map(sa => {
+        const duration = sa.duration ? formatDuration(sa.duration) : '';
+        const statusClass = sa.active ? 'active' : 'inactive';
+        
+        return `
+          <div class="subagent-item ${statusClass}">
+            <div class="subagent-indicator ${statusClass}"></div>
+            <div class="subagent-info">
+              <div class="subagent-task">${esc(sa.task || 'Working...')}</div>
+              <div class="subagent-meta">
+                <span class="subagent-id">#${esc(sa.shortId)}</span>
+                ${duration ? `<span class="subagent-duration">${duration}</span>` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
     }
 
     function updateStats(stats) {

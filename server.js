@@ -887,6 +887,126 @@ app.post('/api/internal/status', (req, res) => {
   res.json({ success: true });
 });
 
+// ==================== SUBAGENT STATUS API ====================
+// Scans session files to find active subagents
+app.get('/api/subagents', requireAuth, (req, res) => {
+  try {
+    const SUBAGENT_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes - consider subagent inactive if no recent activity
+    const now = Date.now();
+    const subagents = [];
+    
+    if (!fs.existsSync(SESSIONS_DIR)) {
+      return res.json({ subagents: [], timestamp: now });
+    }
+    
+    const files = fs.readdirSync(SESSIONS_DIR)
+      .filter(f => f.endsWith('.jsonl') && !f.includes('.lock') && !f.includes('.deleted'))
+      .map(f => ({
+        name: f,
+        path: path.join(SESSIONS_DIR, f),
+        stat: fs.statSync(path.join(SESSIONS_DIR, f))
+      }))
+      // Only consider files modified in last 30 minutes
+      .filter(f => now - f.stat.mtimeMs < 30 * 60 * 1000);
+    
+    for (const file of files) {
+      try {
+        const content = fs.readFileSync(file.path, 'utf8');
+        const lines = content.split('\n').filter(l => l.trim());
+        
+        // Check if this is a subagent session
+        let isSubagent = false;
+        let subagentId = null;
+        let task = null;
+        let startedAt = null;
+        let lastActivity = file.stat.mtimeMs;
+        
+        for (const line of lines) {
+          try {
+            const entry = JSON.parse(line);
+            
+            // Look for subagent session key
+            if (entry.sessionKey && entry.sessionKey.includes(':subagent:')) {
+              isSubagent = true;
+              // Extract subagent ID from sessionKey like "agent:main:subagent:UUID"
+              const parts = entry.sessionKey.split(':subagent:');
+              if (parts[1]) {
+                subagentId = parts[1].split(':')[0]; // Get UUID part
+              }
+            }
+            
+            // Look for task/context in the session
+            if (entry.type === 'session' && entry.timestamp) {
+              startedAt = new Date(entry.timestamp).getTime();
+            }
+            
+            // Look for subagent context or task description in messages
+            if (entry.message && entry.message.role === 'user' && entry.message.content) {
+              const content = typeof entry.message.content === 'string' 
+                ? entry.message.content 
+                : JSON.stringify(entry.message.content);
+              // Try to extract task from subagent context
+              if (content.includes('# Subagent Context') || content.includes('You were created to handle:')) {
+                const taskMatch = content.match(/You were created to handle:\s*(.+?)(?:\n|$)/);
+                if (taskMatch) {
+                  task = taskMatch[1].substring(0, 100); // Limit task length
+                }
+              }
+              // Fallback: use first user message as task hint
+              if (!task && content.length > 0 && content.length < 200) {
+                task = content.substring(0, 80);
+              }
+            }
+            
+            // Track latest timestamp
+            if (entry.timestamp) {
+              const ts = new Date(entry.timestamp).getTime();
+              if (ts > lastActivity) lastActivity = ts;
+            }
+          } catch (e) {
+            // Skip malformed lines
+          }
+        }
+        
+        if (isSubagent && subagentId) {
+          const isActive = (now - lastActivity) < SUBAGENT_TIMEOUT_MS;
+          subagents.push({
+            id: subagentId,
+            shortId: subagentId.substring(0, 8),
+            task: task || 'Working...',
+            startedAt,
+            lastActivity,
+            duration: startedAt ? now - startedAt : null,
+            active: isActive,
+            sessionFile: file.name
+          });
+        }
+      } catch (e) {
+        console.error(`Error parsing session file ${file.name}:`, e.message);
+      }
+    }
+    
+    // Sort by activity (most recent first), active ones first
+    subagents.sort((a, b) => {
+      if (a.active !== b.active) return b.active ? 1 : -1;
+      return b.lastActivity - a.lastActivity;
+    });
+    
+    // Limit to most recent 10 subagents
+    res.json({ 
+      subagents: subagents.slice(0, 10),
+      activeCount: subagents.filter(s => s.active).length,
+      totalCount: subagents.length,
+      timestamp: now
+    });
+  } catch (e) {
+    console.error('Subagents API error:', e);
+    res.status(500).json({ error: 'Failed to get subagent status', subagents: [] });
+  }
+});
+
+// ==================== END SUBAGENT STATUS API ====================
+
 // Static files AFTER API routes
 app.use(express.static(path.join(__dirname, 'public')));
 
