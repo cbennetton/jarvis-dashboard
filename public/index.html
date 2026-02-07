@@ -731,15 +731,17 @@
     .calendar-week-activity-item {
       font-size: 13px;
       color: var(--text-secondary);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      /* Allow text to wrap within available width */
+      white-space: normal;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
       padding: 4px 8px;
       background: rgba(16, 185, 129, 0.12);
       border-radius: 6px;
       border-left: 3px solid var(--accent);
       max-width: 100%;
       display: block;
+      line-height: 1.4;
     }
 
     .calendar-week-activity-count {
@@ -1290,8 +1292,8 @@
       .header-title span { font-size: 20px; }
       .logout-btn { padding: 6px 12px; font-size: 13px; }
       
-      /* Page container mobile */
-      .page-container { padding: 12px; width: 100%; max-width: 100%; box-sizing: border-box; }
+      /* Page container mobile - reduced padding for more calendar space */
+      .page-container { padding: 8px; width: 100%; max-width: 100%; box-sizing: border-box; }
       .page-header { flex-direction: column; gap: 12px; align-items: stretch; }
       .page-title { font-size: 20px; }
       .refresh-btn { align-self: flex-end; }
@@ -1327,12 +1329,20 @@
       
       /* Calendar mobile portrait - Show vertical week list */
       .calendar-card { 
-        padding: 10px; 
+        padding: 8px; 
         width: 100%;
         box-sizing: border-box;
+        margin: 0;
       }
       .calendar-grid-mobile {
-        gap: 3px;
+        gap: 2px;
+        width: 100%;
+      }
+      .calendar-grid-mobile .calendar-day {
+        /* Ensure cells don't overlap - proper sizing */
+        min-width: 0;
+        width: 100%;
+        overflow: hidden;
       }
       .calendar-header { flex-direction: column; gap: 12px; align-items: stretch; }
       .calendar-header > div { width: 100%; justify-content: space-between; display: flex; }
@@ -1475,7 +1485,8 @@
 
     /* Extra small mobile (< 380px) */
     @media (max-width: 380px) {
-      .page-container { padding: 8px; }
+      .page-container { padding: 4px; }
+      .calendar-card { padding: 6px; }
       .status-activity-card, .calendar-card, .activity-card { padding: 12px; }
       .status-indicator { width: 50px; height: 50px; }
       .status-icon { font-size: 24px; }
