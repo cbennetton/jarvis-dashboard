@@ -725,6 +725,7 @@
       gap: 4px;
       overflow: hidden;
       min-width: 0;
+      max-width: calc(100% - 100px);
     }
 
     .calendar-week-activity-item {
@@ -737,6 +738,8 @@
       background: rgba(16, 185, 129, 0.12);
       border-radius: 6px;
       border-left: 3px solid var(--accent);
+      max-width: 100%;
+      display: block;
     }
 
     .calendar-week-activity-count {
@@ -1324,9 +1327,12 @@
       
       /* Calendar mobile portrait - Show vertical week list */
       .calendar-card { 
-        padding: 16px; 
+        padding: 10px; 
         width: 100%;
         box-sizing: border-box;
+      }
+      .calendar-grid-mobile {
+        gap: 3px;
       }
       .calendar-header { flex-direction: column; gap: 12px; align-items: stretch; }
       .calendar-header > div { width: 100%; justify-content: space-between; display: flex; }
@@ -3099,7 +3105,7 @@
 
       // Build both desktop grid and mobile list
       let desktopHtml = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d => `<div class="calendar-weekday">${d}</div>`).join('');
-      let mobileHtml = '';
+      const mobileItems = []; // Array to collect mobile items, will be reversed
       const weekdays = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 
       for (let i = 0; i < 7; i++) {
@@ -3146,7 +3152,8 @@
           mobileActivityHtml = '<div class="calendar-week-day-empty">No activity</div>';
         }
 
-        mobileHtml += `
+        // Push to array (will reverse later for newest-first order)
+        mobileItems.push(`
           <div class="${mobileClasses.join(' ')}" data-date="${date.toISOString()}">
             <div class="calendar-week-day-date">
               <div class="calendar-week-day-weekday">${weekdays[i]}</div>
@@ -3155,8 +3162,11 @@
             <div class="calendar-week-day-content">${mobileActivityHtml}</div>
             <div class="calendar-week-day-indicator">${hasActivity ? '›' : ''}</div>
           </div>
-        `;
+        `);
       }
+
+      // Reverse mobile list so newest day (Sunday) is at top
+      const mobileHtml = mobileItems.reverse().join('');
 
       // Render to both containers
       grid.innerHTML = `<div class="calendar-week-desktop">${desktopHtml}</div><div class="calendar-week-list">${mobileHtml}</div>`;
