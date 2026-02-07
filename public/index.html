@@ -849,17 +849,23 @@
       .calendar-grid-desktop { display: none !important; }
       .calendar-week-desktop { display: none !important; }
       
+      /* Ensure calendar grid uses full width */
+      #calendarGrid { width: 100%; box-sizing: border-box; }
+      
       /* Week view - show vertical list by default */
-      #calendarGrid .calendar-week-list { display: flex; }
+      #calendarGrid .calendar-week-list { display: flex; width: 100%; }
       #calendarGrid .calendar-grid-mobile { display: none; }
       
       /* Month view - show compact grid */
       #calendarGrid.show-month-grid .calendar-week-list { display: none !important; }
-      #calendarGrid.show-month-grid .calendar-grid-mobile { display: grid !important; }
+      #calendarGrid.show-month-grid .calendar-grid-mobile { display: grid !important; width: 100%; }
       
       /* Week view - show list (explicit class) */
-      #calendarGrid.show-week-list .calendar-week-list { display: flex !important; }
+      #calendarGrid.show-week-list .calendar-week-list { display: flex !important; width: 100%; }
       #calendarGrid.show-week-list .calendar-grid-mobile { display: none !important; }
+      
+      /* Week day items fill width */
+      .calendar-week-day { width: 100%; box-sizing: border-box; }
     }
 
     /* Tooltip */
@@ -1294,15 +1300,21 @@
       
       /* Page container mobile - reduced padding for more calendar space */
       .page-container { padding: 8px; width: 100%; max-width: 100%; box-sizing: border-box; }
+      
+      /* Ensure pages fill container width */
+      .page.active { width: 100%; box-sizing: border-box; }
+      
       .page-header { flex-direction: column; gap: 12px; align-items: stretch; }
       .page-title { font-size: 20px; }
       .refresh-btn { align-self: flex-end; }
       
       /* Calendar page controls mobile */
+      #calendarPage { width: 100%; }
       #calendarPage .page-header { 
         flex-direction: column;
         gap: 16px;
         align-items: stretch;
+        width: 100%;
       }
       #calendarPage .page-title {
         text-align: center;
@@ -1331,6 +1343,7 @@
       .calendar-card { 
         padding: 8px; 
         width: 100%;
+        max-width: 100%;
         box-sizing: border-box;
         margin: 0;
       }
