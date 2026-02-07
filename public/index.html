@@ -788,7 +788,7 @@
 
     .calendar-grid-mobile .calendar-day {
       aspect-ratio: 1;
-      min-height: 48px;
+      /* Removed min-height to allow grid to size cells based on available width */
       padding: 4px;
       border-radius: 10px;
       display: flex;
@@ -1362,8 +1362,7 @@
       .calendar-title { font-size: 14px; }
       .calendar-month { font-size: 15px; min-width: auto; }
       
-      /* Month view uses compact grid on mobile */
-      .calendar-grid-mobile .calendar-day { min-height: 50px; }
+      /* Month view uses compact grid on mobile - no min-height, let grid size cells */
       
       .calendar-nav { justify-content: center; }
       .calendar-nav button { 
@@ -1505,7 +1504,7 @@
       .status-icon { font-size: 24px; }
       .status-task { font-size: 16px; }
       .mini-stat-value { font-size: 18px; }
-      .calendar-day { min-height: 42px; }
+      /* Removed calendar-day min-height - let aspect-ratio and grid handle sizing */
       .calendar-weekday { font-size: 9px; }
       .markdown-viewer-card, .skills-viewer-card { padding: 12px; }
       .markdown-editor { min-height: 250px; font-size: 12px; }
