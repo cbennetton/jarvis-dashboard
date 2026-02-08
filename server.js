@@ -156,20 +156,60 @@ app.post('/api/logout', (req, res) => {
 });
 
 app.post('/api/call-me', requireAuth, async (req, res) => {
-  const { exec } = require('child_process');
+  const https = require('https');
   const phoneNumber = '+4915164506619'; // Christopher's phone number
   
   console.log('📞 Initiating call to', phoneNumber);
   
-  exec(`openclaw voicecall call --to "${phoneNumber}" --message "Hi Christopher! You clicked the Call Me Now button on the dashboard. I'm ready to talk!"`, (error, stdout, stderr) => {
-    if (error) {
-      console.error('Call failed:', error);
-      console.error('stderr:', stderr);
-      return res.status(500).json({ success: false, error: error.message });
+  // Call via OpenClaw Gateway API
+  const payload = JSON.stringify({
+    method: 'voicecall.initiate',
+    params: {
+      to: phoneNumber,
+      message: 'Hi Christopher! You clicked the Call Me Now button on the dashboard. Ready to talk!',
+      mode: 'conversation'
     }
-    console.log('Call initiated:', stdout);
-    res.json({ success: true, callId: stdout.trim() });
   });
+  
+  const options = {
+    hostname: '127.0.0.1',
+    port: 18789,
+    path: '/rpc',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Content-Length': payload.length,
+      'Authorization': 'Bearer 6444179f636ff5a7a1818db88b90e0e253d32dfa1a42e23b'
+    },
+    rejectUnauthorized: false
+  };
+  
+  const gatewayReq = https.request(options, (gatewayRes) => {
+    let data = '';
+    gatewayRes.on('data', (chunk) => { data += chunk; });
+    gatewayRes.on('end', () => {
+      try {
+        const result = JSON.parse(data);
+        if (result.error) {
+          console.error('Gateway error:', result.error);
+          return res.status(500).json({ success: false, error: result.error });
+        }
+        console.log('Call initiated:', result);
+        res.json({ success: true, callId: result.result?.callId });
+      } catch (e) {
+        console.error('Parse error:', e);
+        res.status(500).json({ success: false, error: 'Failed to parse gateway response' });
+      }
+    });
+  });
+  
+  gatewayReq.on('error', (error) => {
+    console.error('Gateway request error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  });
+  
+  gatewayReq.write(payload);
+  gatewayReq.end();
 });
 
 app.post('/api/setup', setupLimiter, async (req, res) => {
