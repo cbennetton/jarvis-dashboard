@@ -287,6 +287,20 @@
       0%, 100% { transform: rotate(-15deg); }
       50% { transform: rotate(15deg); }
     }
+    
+    @media (max-width: 768px) {
+      .call-me-btn {
+        padding: 8px 12px;
+        font-size: 0;
+      }
+      .call-me-btn .icon {
+        font-size: 20px;
+        margin: 0;
+      }
+      .call-me-btn span:not(.icon) {
+        display: none;
+      }
+    }
 
     /* Page Container */
     .page-container {
