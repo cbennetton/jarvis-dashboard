@@ -16,6 +16,42 @@ const PORT = process.env.PORT || 3847;
 // Database file
 const DB_FILE = path.join(__dirname, 'data.json');
 
+// Basic in-memory rate limiter (IP-based)
+const RATE_LIMIT_WINDOW_MS = parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000', 10);
+const RATE_LIMIT_MAX = parseInt(process.env.RATE_LIMIT_MAX || '300', 10);
+const LOGIN_RATE_LIMIT_MAX = parseInt(process.env.LOGIN_RATE_LIMIT_MAX || '5', 10);
+const SETUP_RATE_LIMIT_MAX = parseInt(process.env.SETUP_RATE_LIMIT_MAX || '3', 10);
+
+function createRateLimiter({ windowMs, max, keyFn }) {
+  const buckets = new Map();
+  return function rateLimiter(req, res, next) {
+    const now = Date.now();
+    const key = keyFn ? keyFn(req) : req.ip;
+    let bucket = buckets.get(key);
+    if (!bucket || now > bucket.reset) {
+      bucket = { count: 0, reset: now + windowMs };
+      buckets.set(key, bucket);
+    }
+    bucket.count += 1;
+    const remaining = Math.max(0, max - bucket.count);
+    res.set('X-RateLimit-Limit', String(max));
+    res.set('X-RateLimit-Remaining', String(remaining));
+    res.set('X-RateLimit-Reset', String(Math.ceil(bucket.reset / 1000)));
+    if (bucket.count > max) {
+      const retryAfter = Math.ceil((bucket.reset - now) / 1000);
+      res.set('Retry-After', String(retryAfter));
+      return res.status(429).json({ error: 'Too many requests', retryAfter });
+    }
+    // Opportunistic cleanup to avoid unbounded growth
+    if (buckets.size > 5000) {
+      for (const [k, v] of buckets.entries()) {
+        if (now > v.reset) buckets.delete(k);
+      }
+    }
+    next();
+  };
+}
+
 function loadDB() {
   try {
     if (fs.existsSync(DB_FILE)) {
@@ -63,6 +99,14 @@ app.use(session({
   cookie: { secure: false, httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000, sameSite: 'lax' }
 }));
 
+// General API rate limit (helps reduce abuse/DOS on API routes)
+const apiLimiter = createRateLimiter({ windowMs: RATE_LIMIT_WINDOW_MS, max: RATE_LIMIT_MAX });
+app.use('/api/', apiLimiter);
+
+// Stricter limits for auth/setup endpoints
+const loginLimiter = createRateLimiter({ windowMs: RATE_LIMIT_WINDOW_MS, max: LOGIN_RATE_LIMIT_MAX, keyFn: (req) => `login:${req.ip}` });
+const setupLimiter = createRateLimiter({ windowMs: RATE_LIMIT_WINDOW_MS, max: SETUP_RATE_LIMIT_MAX, keyFn: (req) => `setup:${req.ip}` });
+
 function requireAuth(req, res, next) {
   if (req.session.authenticated) return next();
   res.status(401).json({ error: 'Unauthorized' });
@@ -78,7 +122,7 @@ app.get('/api/auth-check', (req, res) => {
   res.json({ authenticated: !!req.session.authenticated });
 });
 
-app.post('/api/login', async (req, res) => {
+app.post('/api/login', loginLimiter, async (req, res) => {
   const { username, password } = req.body;
   console.log('Login attempt for:', username);
   const user = db.users.find(u => u.username === username);
@@ -111,7 +155,7 @@ app.post('/api/logout', (req, res) => {
   res.json({ success: true });
 });
 
-app.post('/api/setup', async (req, res) => {
+app.post('/api/setup', setupLimiter, async (req, res) => {
   if (db.users.length > 0) return res.status(403).json({ error: 'Already configured' });
   const { username, password } = req.body;
   if (!username || !password || password.length < 6) {
