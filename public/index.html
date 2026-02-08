@@ -245,6 +245,49 @@
     }
     .logout-btn:hover { background: var(--bg-card); color: var(--text-primary); }
 
+    .call-me-btn {
+      padding: 10px 20px;
+      background: linear-gradient(135deg, var(--accent) 0%, #059669 100%);
+      border: none;
+      border-radius: 10px;
+      color: white;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+    .call-me-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+    }
+    .call-me-btn:active {
+      transform: translateY(0);
+    }
+    .call-me-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .call-me-btn .icon {
+      font-size: 18px;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+    .call-me-btn.calling .icon {
+      animation: ring 0.5s ease-in-out infinite;
+    }
+    @keyframes ring {
+      0%, 100% { transform: rotate(-15deg); }
+      50% { transform: rotate(15deg); }
+    }
+
     /* Page Container */
     .page-container {
       padding: 24px;
@@ -2707,6 +2750,10 @@
         <div class="header-title"><span>🦊</span> <span id="headerPageTitle">Dashboard</span></div>
       </div>
       <div class="header-right">
+        <button class="call-me-btn" id="callMeBtn">
+          <span class="icon">📞</span>
+          <span>Call Me Now</span>
+        </button>
         <button class="logout-btn" id="logoutBtn">Sign Out</button>
       </div>
     </header>
@@ -3106,6 +3153,51 @@
         await fetch('/api/logout', { method: 'POST', credentials: 'same-origin' });
       } catch(e) {}
       location.reload();
+    });
+
+    // Call Me Now button
+    document.getElementById('callMeBtn').addEventListener('click', async () => {
+      const btn = document.getElementById('callMeBtn');
+      const icon = btn.querySelector('.icon');
+      const text = btn.querySelector('span:not(.icon)');
+      
+      try {
+        btn.disabled = true;
+        btn.classList.add('calling');
+        text.textContent = 'Calling...';
+        
+        const res = await fetch('/api/call-me', { 
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin'
+        });
+        
+        const data = await res.json();
+        
+        if (data.success) {
+          text.textContent = 'Calling! 📱';
+          setTimeout(() => {
+            text.textContent = 'Call Me Now';
+            btn.classList.remove('calling');
+            btn.disabled = false;
+          }, 5000);
+        } else {
+          text.textContent = 'Failed';
+          setTimeout(() => {
+            text.textContent = 'Call Me Now';
+            btn.classList.remove('calling');
+            btn.disabled = false;
+          }, 3000);
+        }
+      } catch (e) {
+        console.error('Call failed:', e);
+        text.textContent = 'Error';
+        setTimeout(() => {
+          text.textContent = 'Call Me Now';
+          btn.classList.remove('calling');
+          btn.disabled = false;
+        }, 3000);
+      }
     });
 
     function showDashboard() {

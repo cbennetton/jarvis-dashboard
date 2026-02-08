@@ -155,6 +155,23 @@ app.post('/api/logout', (req, res) => {
   res.json({ success: true });
 });
 
+app.post('/api/call-me', requireAuth, async (req, res) => {
+  const { exec } = require('child_process');
+  const phoneNumber = '+4915164506619'; // Christopher's phone number
+  
+  console.log('📞 Initiating call to', phoneNumber);
+  
+  exec(`openclaw voicecall call --to "${phoneNumber}" --message "Hi Christopher! You clicked the Call Me Now button on the dashboard. I'm ready to talk!"`, (error, stdout, stderr) => {
+    if (error) {
+      console.error('Call failed:', error);
+      console.error('stderr:', stderr);
+      return res.status(500).json({ success: false, error: error.message });
+    }
+    console.log('Call initiated:', stdout);
+    res.json({ success: true, callId: stdout.trim() });
+  });
+});
+
 app.post('/api/setup', setupLimiter, async (req, res) => {
   if (db.users.length > 0) return res.status(403).json({ error: 'Already configured' });
   const { username, password } = req.body;
