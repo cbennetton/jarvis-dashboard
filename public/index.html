@@ -2217,7 +2217,7 @@
       .usage-chart-container { height: 200px; }
     }
 
-    /* ==================== NEWSLETTERS PAGE ==================== */
+    /* ==================== MORNING BOOST PAGE ==================== */
     .page-header-actions {
       display: flex;
       gap: 12px;
@@ -2248,7 +2248,7 @@
       padding-right: 4px;
     }
 
-    /* Compact Newsletter Card */
+    /* Compact Morning Boost Card */
     .newsletter-card {
       background: var(--bg-card);
       backdrop-filter: blur(20px);
@@ -2497,7 +2497,7 @@
     }
     .newsletter-collapse-btn:hover { background: var(--bg-secondary); color: var(--text-primary); }
 
-    /* Newsletter Modal */
+    /* Morning Boost Modal */
     .newsletter-modal-overlay {
       display: none;
       position: fixed;
@@ -2744,7 +2744,7 @@
         </div>
         <div class="nav-item" data-page="newsletters">
           <span class="nav-item-icon">📧</span>
-          <span>Newsletters</span>
+          <span>Morning Boost</span>
         </div>
         <div class="nav-item" data-page="usage">
           <span class="nav-item-icon">📊</span>
@@ -2946,16 +2946,16 @@
         </div>
       </div>
 
-      <!-- Newsletters Page -->
+      <!-- Morning Boost Page -->
       <div class="page" id="newslettersPage">
         <div class="page-header">
-          <h1 class="page-title">📧 Newsletters</h1>
+          <h1 class="page-title">🚀 Morning Boost</h1>
           <div class="page-header-actions">
             <button class="refresh-btn" id="refreshNewsletters">
               <span class="refresh-icon">🔄</span> Refresh
             </button>
             <button class="add-btn" id="addNewsletterBtn">
-              <span>➕</span> Add Newsletter
+              <span>➕</span> Add Morning Boost
             </button>
           </div>
         </div>
@@ -3070,11 +3070,11 @@
     <span>🔔</span> Files updated - click to refresh
   </div>
 
-  <!-- Newsletter Modal -->
+  <!-- Morning Boost Modal -->
   <div class="newsletter-modal-overlay" id="newsletterModal">
     <div class="newsletter-modal">
       <div class="newsletter-modal-header">
-        <h3 class="newsletter-modal-title" id="newsletterModalTitle">Add Newsletter</h3>
+        <h3 class="newsletter-modal-title" id="newsletterModalTitle">Add Morning Boost</h3>
         <button class="newsletter-modal-close" id="newsletterModalClose">×</button>
       </div>
       <div class="newsletter-modal-body">
@@ -3129,7 +3129,7 @@
       </div>
       <div class="newsletter-modal-footer">
         <button class="newsletter-modal-btn cancel" id="newsletterModalCancel">Cancel</button>
-        <button class="newsletter-modal-btn save" id="newsletterModalSave">Save Newsletter</button>
+        <button class="newsletter-modal-btn save" id="newsletterModalSave">Save Morning Boost</button>
       </div>
     </div>
   </div>
@@ -3263,7 +3263,7 @@
       document.getElementById(`${pageName}Page`).classList.add('active');
 
       // Update header title
-      const titles = { home: 'Dashboard', calendar: 'Activity Calendar', repositories: 'Repositories', markdowns: 'Markdown Files', skills: 'Skills', newsletters: 'Newsletters', usage: 'API Usage' };
+      const titles = { home: 'Dashboard', calendar: 'Activity Calendar', repositories: 'Repositories', markdowns: 'Markdown Files', skills: 'Skills', newsletters: 'Morning Boost', usage: 'API Usage' };
       document.getElementById('headerPageTitle').textContent = titles[pageName] || 'Dashboard';
 
       // Load page content
@@ -4285,7 +4285,7 @@
           <div class="empty-state">
             <div class="empty-state-icon">📧</div>
             <p>No newsletters configured yet</p>
-            <p style="color: var(--text-muted); font-size: 14px; margin-top: 8px;">Click "Add Newsletter" to create one</p>
+            <p style="color: var(--text-muted); font-size: 14px; margin-top: 8px;">Click "Add Morning Boost" to create one</p>
           </div>`;
         return;
       }
@@ -4440,7 +4440,7 @@
 
     function openNewsletterModal(newsletter = null) {
       const isEdit = !!newsletter;
-      document.getElementById('newsletterModalTitle').textContent = isEdit ? 'Edit Newsletter' : 'Add Newsletter';
+      document.getElementById('newsletterModalTitle').textContent = isEdit ? 'Edit Morning Boost' : 'Add Morning Boost';
       document.getElementById('newsletterEditId').value = isEdit ? newsletter.id : '';
       
       document.getElementById('newsletterRecipientName').value = isEdit ? newsletter.recipient.name : '';

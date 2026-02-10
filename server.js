@@ -868,7 +868,7 @@ function loadNewsletters() {
       return JSON.parse(fs.readFileSync(NEWSLETTERS_FILE, 'utf8'));
     }
   } catch (e) {
-    console.error('Newsletters load error:', e);
+    console.error('Morning Boost load error:', e);
   }
   return [];
 }
@@ -883,7 +883,7 @@ app.get('/api/newsletters', requireAuth, (req, res) => {
     const newsletters = loadNewsletters();
     res.json(newsletters);
   } catch (e) {
-    console.error('Newsletters API error:', e);
+    console.error('Morning Boost API error:', e);
     res.status(500).json({ error: 'Failed to load newsletters' });
   }
 });
@@ -906,7 +906,7 @@ app.post('/api/newsletters', requireAuth, (req, res) => {
     saveNewsletters(newsletters);
     res.json({ success: true, newsletter: newNewsletter });
   } catch (e) {
-    console.error('Newsletter create error:', e);
+    console.error('Morning Boost create error:', e);
     res.status(500).json({ error: 'Failed to create newsletter' });
   }
 });
@@ -917,7 +917,7 @@ app.put('/api/newsletters/:id', requireAuth, (req, res) => {
     const newsletters = loadNewsletters();
     const idx = newsletters.findIndex(n => n.id === req.params.id);
     if (idx === -1) {
-      return res.status(404).json({ error: 'Newsletter not found' });
+      return res.status(404).json({ error: 'Morning Boost not found' });
     }
     
     // Update fields
@@ -932,7 +932,7 @@ app.put('/api/newsletters/:id', requireAuth, (req, res) => {
     saveNewsletters(newsletters);
     res.json({ success: true, newsletter: newsletters[idx] });
   } catch (e) {
-    console.error('Newsletter update error:', e);
+    console.error('Morning Boost update error:', e);
     res.status(500).json({ error: 'Failed to update newsletter' });
   }
 });
@@ -943,14 +943,14 @@ app.delete('/api/newsletters/:id', requireAuth, (req, res) => {
     const newsletters = loadNewsletters();
     const idx = newsletters.findIndex(n => n.id === req.params.id);
     if (idx === -1) {
-      return res.status(404).json({ error: 'Newsletter not found' });
+      return res.status(404).json({ error: 'Morning Boost not found' });
     }
     
     newsletters.splice(idx, 1);
     saveNewsletters(newsletters);
     res.json({ success: true });
   } catch (e) {
-    console.error('Newsletter delete error:', e);
+    console.error('Morning Boost delete error:', e);
     res.status(500).json({ error: 'Failed to delete newsletter' });
   }
 });
