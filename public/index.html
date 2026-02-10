@@ -2767,6 +2767,16 @@
       margin-bottom: 16px;
       padding-bottom: 12px;
       border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s;
+    }
+
+    .kanban-column-header:hover {
+      background: var(--bg-secondary);
+      margin: 0 -12px 16px -12px;
+      padding: 8px 12px 12px 12px;
+      border-radius: 8px;
     }
 
     .kanban-column-icon {
@@ -2788,6 +2798,25 @@
       border-radius: 10px;
       color: var(--text-muted);
       font-weight: 600;
+    }
+
+    .kanban-column-collapse {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-left: auto;
+      transition: transform 0.2s;
+    }
+
+    .kanban-column.collapsed .kanban-column-collapse {
+      transform: rotate(-90deg);
+    }
+
+    .kanban-column.collapsed .kanban-tasks {
+      display: none;
+    }
+
+    .kanban-column.collapsed {
+      min-height: auto;
     }
 
     .kanban-tasks {
@@ -3342,28 +3371,31 @@
         <!-- Kanban Board -->
         <div class="kanban-board">
           <div class="kanban-column">
-            <div class="kanban-column-header">
+            <div class="kanban-column-header" onclick="toggleColumn('todo')">
               <span class="kanban-column-icon">📝</span>
               <span class="kanban-column-title">To Do</span>
               <span class="kanban-column-count" id="todoCount">0</span>
+              <span class="kanban-column-collapse" id="todoCollapse">▼</span>
             </div>
             <div class="kanban-tasks" id="todoTasks"></div>
           </div>
 
           <div class="kanban-column">
-            <div class="kanban-column-header">
+            <div class="kanban-column-header" onclick="toggleColumn('progress')">
               <span class="kanban-column-icon">⚡</span>
               <span class="kanban-column-title">In Progress</span>
               <span class="kanban-column-count" id="progressCount">0</span>
+              <span class="kanban-column-collapse" id="progressCollapse">▼</span>
             </div>
             <div class="kanban-tasks" id="progressTasks"></div>
           </div>
 
           <div class="kanban-column">
-            <div class="kanban-column-header">
+            <div class="kanban-column-header" onclick="toggleColumn('done')">
               <span class="kanban-column-icon">✅</span>
               <span class="kanban-column-title">Done</span>
               <span class="kanban-column-count" id="doneCount">0</span>
+              <span class="kanban-column-collapse" id="doneCollapse">▼</span>
             </div>
             <div class="kanban-tasks" id="doneTasks"></div>
           </div>
@@ -5353,6 +5385,37 @@
       }
     });
 
-</script>
+
+    // Column collapse/expand
+    let collapsedColumns = JSON.parse(localStorage.getItem('collapsedColumns') || '{}');
+
+    function toggleColumn(columnName) {
+      collapsedColumns[columnName] = !collapsedColumns[columnName];
+      localStorage.setItem('collapsedColumns', JSON.stringify(collapsedColumns));
+      applyCollapsedState();
+    }
+
+    function applyCollapsedState() {
+      ['todo', 'progress', 'done'].forEach(col => {
+        const column = document.querySelector(`#${col}Tasks`).closest('.kanban-column');
+        const collapseIcon = document.getElementById(`${col}Collapse`);
+        if (collapsedColumns[col]) {
+          column.classList.add('collapsed');
+          if (collapseIcon) collapseIcon.textContent = '▶';
+        } else {
+          column.classList.remove('collapsed');
+          if (collapseIcon) collapseIcon.textContent = '▼';
+        }
+      });
+    }
+
+    // Apply collapsed state when Launch Pad loads
+    const originalLoadLaunchPad = loadLaunchPad;
+    loadLaunchPad = function() {
+      originalLoadLaunchPad();
+      setTimeout(applyCollapsedState, 100);
+    };
+
+  </script>
 </body>
 </html>
