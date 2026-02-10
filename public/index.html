@@ -357,6 +357,20 @@
     }
 
     /* Hero Status Section */
+    .hero-status-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .hero-status-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin: 0;
+    }
+
     .hero-status {
       display: flex;
       flex-direction: column;
@@ -1522,6 +1536,10 @@
     @media (max-width: 768px) {
       /* Prevent horizontal scroll on mobile */
       body { overflow-x: hidden; }
+      
+      /* Status header mobile */
+      .hero-status-header { margin-bottom: 12px; }
+      .hero-status-title { font-size: 18px; }
       
       /* Status card mobile */
       .hero-status { gap: 16px; }
@@ -3076,6 +3094,13 @@
       <div class="page active" id="homePage">
         <!-- Enhanced Status Card -->
         <div class="status-activity-card">
+          <!-- Hero Status Header with Refresh -->
+          <div class="hero-status-header">
+            <h2 class="hero-status-title">⚡ Live Status</h2>
+            <button class="refresh-btn" id="refreshDashboard">
+              <span class="refresh-icon">🔄</span> Refresh
+            </button>
+          </div>
           <!-- Hero Status Section -->
           <div class="hero-status">
             <!-- Main Agent (Jarvis) Status -->
@@ -3592,6 +3617,19 @@
       }, 10000);
       startChangeDetection();
     }
+
+    // Manual refresh button for dashboard
+    document.getElementById('refreshDashboard').addEventListener('click', async function() {
+      const btn = this;
+      btn.classList.add('loading');
+      try {
+        await Promise.all([loadData(), loadSubagents()]);
+      } catch (e) {
+        console.error('Refresh failed:', e);
+      } finally {
+        btn.classList.remove('loading');
+      }
+    });
 
     // ==================== SIDEBAR ====================
     document.getElementById('hamburgerBtn').addEventListener('click', () => {
