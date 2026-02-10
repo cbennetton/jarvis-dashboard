@@ -608,10 +608,12 @@ const MODEL_PRICING = {
 const MODEL_INFO = {
   'claude-sonnet-4-5': { emoji: '🎵', name: 'Claude Sonnet 4.5', color: '#10b981' },
   'claude-opus-4-5': { emoji: '🎼', name: 'Claude Opus 4.5', color: '#8b5cf6' },
+  'claude-haiku-4-5': { emoji: '🐇', name: 'Claude Haiku 4.5', color: '#3b82f6' },
   'claude-haiku-3-5': { emoji: '🌸', name: 'Claude Haiku 3.5', color: '#f472b6' },
   'claude-3-5-sonnet': { emoji: '🎵', name: 'Claude 3.5 Sonnet', color: '#10b981' },
   'claude-3-opus': { emoji: '🎼', name: 'Claude 3 Opus', color: '#8b5cf6' },
   'claude-3-haiku': { emoji: '🌸', name: 'Claude 3 Haiku', color: '#f472b6' }
+  // Note: Any model not listed here will auto-display with default styling (🤖, gray, raw name)
 };
 
 function parseSessionFile(filePath) {
