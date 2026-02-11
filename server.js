@@ -859,7 +859,689 @@ app.get('/api/usage', requireAuth, (req, res) => {
   }
 });
 
+// ==================== USAGE BY TASK API ====================
+
+// Task categorization patterns
+const TASK_PATTERNS = [
+  {
+    id: 'morning-boost',
+    name: 'Morning Boost Emails',
+    emoji: '📧',
+    color: '#f472b6',
+    patterns: [
+      /morning\s*boost/i,
+      /newsletter.*(?:doris|sabrina|uta|liwei)/i,
+      /(?:doris|sabrina|uta|liwei).*newsletter/i,
+      /send.*email.*(?:doris|sabrina|uta|liwei)/i
+    ]
+  },
+  {
+    id: 'morning-briefing',
+    name: "Christopher's Briefing",
+    emoji: '🌅',
+    color: '#fbbf24',
+    patterns: [
+      /morning\s*briefing/i,
+      /christopher.*briefing/i,
+      /daily\s*briefing/i
+    ]
+  },
+  {
+    id: 'dashboard',
+    name: 'Dashboard Development',
+    emoji: '📊',
+    color: '#3b82f6',
+    patterns: [
+      /dashboard/i,
+      /jarvis.*dashboard/i,
+      /api\s*usage/i,
+      /visualization/i,
+      /cost.*tracking/i
+    ]
+  },
+  {
+    id: 'subagent',
+    name: 'Subagent Tasks',
+    emoji: '🔄',
+    color: '#8b5cf6',
+    patterns: [
+      /subagent/i,
+      /sub-agent/i,
+      /spawned.*task/i
+    ],
+    sessionKeyPattern: /:subagent:/
+  },
+  {
+    id: 'calendar-reminder',
+    name: 'Calendar & Reminders',
+    emoji: '📅',
+    color: '#14b8a6',
+    patterns: [
+      /reminder/i,
+      /calendar/i,
+      /scheduled/i,
+      /\[cron:/i
+    ]
+  },
+  {
+    id: 'coding',
+    name: 'Coding & Development',
+    emoji: '💻',
+    color: '#22c55e',
+    patterns: [
+      /code|coding|programming/i,
+      /implement|build|create.*(?:api|endpoint|feature)/i,
+      /fix.*bug/i,
+      /refactor/i,
+      /git.*commit/i
+    ]
+  },
+  {
+    id: 'research',
+    name: 'Research & Analysis',
+    emoji: '🔍',
+    color: '#06b6d4',
+    patterns: [
+      /search|research|analyze/i,
+      /web.*search/i,
+      /look.*up/i,
+      /find.*information/i
+    ]
+  },
+  {
+    id: 'chat',
+    name: 'General Chat',
+    emoji: '💬',
+    color: '#6b7280',
+    patterns: [] // Fallback category
+  }
+];
+
+function categorizeTask(sessionData, firstMessage) {
+  // Check session key first for subagents
+  const sessionKey = sessionData.sessionKey || '';
+  
+  for (const taskType of TASK_PATTERNS) {
+    // Check session key pattern (e.g., for subagents)
+    if (taskType.sessionKeyPattern && taskType.sessionKeyPattern.test(sessionKey)) {
+      return taskType;
+    }
+  }
+  
+  // Check label if available
+  const label = sessionData.label || '';
+  
+  for (const taskType of TASK_PATTERNS) {
+    for (const pattern of taskType.patterns) {
+      if (pattern.test(label)) {
+        return taskType;
+      }
+    }
+  }
+  
+  // Check first message content
+  const messageText = firstMessage || '';
+  
+  for (const taskType of TASK_PATTERNS) {
+    for (const pattern of taskType.patterns) {
+      if (pattern.test(messageText)) {
+        return taskType;
+      }
+    }
+  }
+  
+  // Default to general chat
+  return TASK_PATTERNS.find(t => t.id === 'chat');
+}
+
+function parseSessionFileForTask(filePath) {
+  const result = {
+    taskType: null,
+    label: null,
+    firstMessage: null,
+    totalTokens: 0,
+    cost: 0,
+    calls: 0,
+    models: {},
+    timestamp: null,
+    sessionKey: null
+  };
+  
+  try {
+    const content = fs.readFileSync(filePath, 'utf8');
+    const lines = content.split('\n').filter(line => line.trim());
+    
+    for (const line of lines) {
+      try {
+        const entry = JSON.parse(line);
+        
+        // Get session info
+        if (entry.type === 'session') {
+          result.timestamp = new Date(entry.timestamp).getTime();
+        }
+        
+        // Get first user message for categorization
+        if (!result.firstMessage && entry.type === 'message' && entry.message?.role === 'user') {
+          const content = entry.message.content;
+          if (Array.isArray(content)) {
+            result.firstMessage = content.find(c => c.type === 'text')?.text || '';
+          } else if (typeof content === 'string') {
+            result.firstMessage = content;
+          }
+        }
+        
+        // Extract usage data
+        if (entry.message?.usage && entry.message?.model) {
+          const model = entry.message.model;
+          const u = entry.message.usage;
+          
+          const tokens = u.totalTokens || (u.input || 0) + (u.output || 0) + (u.cacheRead || 0) + (u.cacheWrite || 0);
+          
+          if (!result.models[model]) {
+            result.models[model] = { tokens: 0, cost: 0, calls: 0 };
+          }
+          
+          result.models[model].tokens += tokens;
+          result.models[model].calls += 1;
+          
+          // Calculate cost
+          let cost;
+          if (u.cost?.total) {
+            cost = u.cost.total;
+          } else {
+            const pricing = MODEL_PRICING[model] || MODEL_PRICING['claude-sonnet-4-5'];
+            cost = (
+              ((u.input || 0) / 1000000) * pricing.input +
+              ((u.output || 0) / 1000000) * pricing.output +
+              ((u.cacheRead || 0) / 1000000) * pricing.cacheRead +
+              ((u.cacheWrite || 0) / 1000000) * pricing.cacheWrite
+            );
+          }
+          
+          result.models[model].cost += cost;
+          result.totalTokens += tokens;
+          result.cost += cost;
+          result.calls += 1;
+        }
+      } catch (e) {
+        // Skip malformed lines
+      }
+    }
+  } catch (e) {
+    console.error(`Error parsing session file ${filePath}:`, e.message);
+  }
+  
+  return result;
+}
+
+// GET /api/usage-by-task - Aggregate usage by task type
+app.get('/api/usage-by-task', requireAuth, (req, res) => {
+  try {
+    const days = parseInt(req.query.days) || 30;
+    const cutoffTime = Date.now() - (days * 24 * 60 * 60 * 1000);
+    const usdToEur = 0.92;
+    
+    if (!fs.existsSync(SESSIONS_DIR)) {
+      return res.json({ tasks: {}, totals: { tokens: 0, cost: 0, runs: 0 }, period: days });
+    }
+    
+    // Load sessions.json for labels
+    const sessionsFile = path.join(SESSIONS_DIR, 'sessions.json');
+    let sessionsData = {};
+    try {
+      if (fs.existsSync(sessionsFile)) {
+        sessionsData = JSON.parse(fs.readFileSync(sessionsFile, 'utf8'));
+      }
+    } catch (e) {
+      console.error('Error reading sessions.json:', e.message);
+    }
+    
+    // Get all session files in time range
+    const files = fs.readdirSync(SESSIONS_DIR)
+      .filter(f => f.endsWith('.jsonl') && !f.includes('.lock'))
+      .map(f => {
+        const filePath = path.join(SESSIONS_DIR, f);
+        const stat = fs.statSync(filePath);
+        const sessionId = f.replace('.jsonl', '');
+        return { name: f, path: filePath, mtime: stat.mtimeMs, sessionId };
+      })
+      .filter(f => f.mtime >= cutoffTime);
+    
+    // Aggregate by task type
+    const taskAggregates = {};
+    
+    for (const file of files) {
+      const parsed = parseSessionFileForTask(file.path);
+      
+      if (parsed.calls === 0) continue;
+      
+      // Find session data for label
+      let sessionInfo = { sessionKey: '', label: '' };
+      for (const [key, data] of Object.entries(sessionsData)) {
+        if (data.sessionId === file.sessionId) {
+          sessionInfo = { sessionKey: key, label: data.label || data.origin?.label || '' };
+          break;
+        }
+      }
+      
+      // Categorize the task
+      const taskType = categorizeTask(sessionInfo, parsed.firstMessage);
+      const taskId = taskType.id;
+      
+      if (!taskAggregates[taskId]) {
+        taskAggregates[taskId] = {
+          id: taskId,
+          name: taskType.name,
+          emoji: taskType.emoji,
+          color: taskType.color,
+          runs: 0,
+          tokens: 0,
+          cost: 0,
+          costEur: 0,
+          calls: 0,
+          models: {},
+          sessions: []
+        };
+      }
+      
+      taskAggregates[taskId].runs += 1;
+      taskAggregates[taskId].tokens += parsed.totalTokens;
+      taskAggregates[taskId].cost += parsed.cost;
+      taskAggregates[taskId].costEur += parsed.cost * usdToEur;
+      taskAggregates[taskId].calls += parsed.calls;
+      
+      // Aggregate model usage per task
+      for (const [model, data] of Object.entries(parsed.models)) {
+        if (!taskAggregates[taskId].models[model]) {
+          taskAggregates[taskId].models[model] = { tokens: 0, cost: 0, calls: 0 };
+        }
+        taskAggregates[taskId].models[model].tokens += data.tokens;
+        taskAggregates[taskId].models[model].cost += data.cost;
+        taskAggregates[taskId].models[model].calls += data.calls;
+      }
+      
+      // Store session reference (limited to save memory)
+      if (taskAggregates[taskId].sessions.length < 10) {
+        taskAggregates[taskId].sessions.push({
+          id: file.sessionId,
+          label: sessionInfo.label,
+          tokens: parsed.totalTokens,
+          cost: parsed.cost * usdToEur,
+          timestamp: parsed.timestamp || file.mtime
+        });
+      }
+    }
+    
+    // Calculate totals and percentages
+    let totalTokens = 0;
+    let totalCost = 0;
+    let totalRuns = 0;
+    
+    for (const task of Object.values(taskAggregates)) {
+      totalTokens += task.tokens;
+      totalCost += task.cost;
+      totalRuns += task.runs;
+    }
+    
+    // Add percentages
+    for (const task of Object.values(taskAggregates)) {
+      task.tokenPercentage = totalTokens > 0 ? (task.tokens / totalTokens * 100) : 0;
+      task.costPercentage = totalCost > 0 ? (task.cost / totalCost * 100) : 0;
+      
+      // Sort sessions by most recent
+      task.sessions.sort((a, b) => b.timestamp - a.timestamp);
+    }
+    
+    // Sort tasks by cost (most expensive first)
+    const sortedTasks = Object.values(taskAggregates)
+      .sort((a, b) => b.costEur - a.costEur);
+    
+    res.json({
+      tasks: sortedTasks,
+      totals: {
+        tokens: totalTokens,
+        cost: totalCost,
+        costEur: totalCost * usdToEur,
+        runs: totalRuns
+      },
+      taskTypes: TASK_PATTERNS.map(t => ({ id: t.id, name: t.name, emoji: t.emoji, color: t.color })),
+      period: days,
+      sessionsProcessed: files.length,
+      timestamp: Date.now()
+    });
+  } catch (e) {
+    console.error('Usage by task API error:', e);
+    res.status(500).json({ error: 'Failed to aggregate usage by task' });
+  }
+});
+
+// ==================== END USAGE BY TASK API ====================
+
 // ==================== END API USAGE API ====================
+
+// ==================== TASK-BASED USAGE API ====================
+
+// Task categorization logic
+function categorizeSessionTask(sessionKey, firstMessage, label) {
+  // Priority 1: Check for explicit labels from sessions.json
+  if (label) {
+    // Morning Boost emails (specific recipients)
+    if (label.toLowerCase().includes('morning boost') || 
+        label.toLowerCase().includes('newsletter') ||
+        label.toLowerCase().includes('doris') ||
+        label.toLowerCase().includes('sabrina') ||
+        label.toLowerCase().includes('uta') ||
+        label.toLowerCase().includes('liwei')) {
+      return 'Morning Boost Emails';
+    }
+    
+    // Christopher's briefing
+    if (label.toLowerCase().includes('christopher') && 
+        (label.toLowerCase().includes('brief') || label.toLowerCase().includes('morning'))) {
+      return "Christopher's Morning Briefing";
+    }
+    
+    // Dashboard development
+    if (label.toLowerCase().includes('dashboard')) {
+      return 'Dashboard Development';
+    }
+    
+    // Subagent tasks (generic)
+    if (sessionKey.includes('subagent')) {
+      return 'Subagent Tasks';
+    }
+  }
+  
+  // Priority 2: Check first message content for patterns
+  if (firstMessage) {
+    const content = JSON.stringify(firstMessage).toLowerCase();
+    
+    // Morning Boost patterns
+    if (content.includes('morning boost') || 
+        (content.includes('newsletter') && (content.includes('doris') || content.includes('sabrina') || content.includes('uta') || content.includes('liwei')))) {
+      return 'Morning Boost Emails';
+    }
+    
+    // Christopher's briefing patterns
+    if ((content.includes('christopher') || content.includes('chris')) && 
+        (content.includes('brief') || content.includes('morning') || content.includes('daily update'))) {
+      return "Christopher's Morning Briefing";
+    }
+    
+    // Dashboard patterns
+    if (content.includes('dashboard') && (content.includes('fix') || content.includes('update') || content.includes('add'))) {
+      return 'Dashboard Development';
+    }
+    
+    // Cron jobs
+    if (content.includes('[cron:') || content.includes('heartbeat')) {
+      return 'Automated Tasks (Cron/Heartbeat)';
+    }
+    
+    // Email-related
+    if (content.includes('email') || content.includes('@') && content.includes('send')) {
+      return 'Email Tasks';
+    }
+  }
+  
+  // Priority 3: Check session key for patterns
+  if (sessionKey.includes('subagent')) {
+    return 'Subagent Tasks';
+  }
+  
+  // Default: General chat/assistance
+  return 'General Chat & Assistance';
+}
+
+// Parse session file with task categorization
+function parseSessionFileByTask(filePath, sessionKey, sessionLabel) {
+  const taskUsage = {};
+  
+  try {
+    const content = fs.readFileSync(filePath, 'utf8');
+    const lines = content.split('\n').filter(line => line.trim());
+    
+    // Try to extract first meaningful message for categorization
+    let firstMessage = null;
+    for (const line of lines) {
+      try {
+        const entry = JSON.parse(line);
+        if (entry.type === 'message' && entry.message && entry.message.role === 'user') {
+          firstMessage = entry.message;
+          break;
+        }
+      } catch (e) {
+        // Skip malformed lines
+      }
+    }
+    
+    // Categorize this session
+    const taskCategory = categorizeSessionTask(sessionKey, firstMessage, sessionLabel);
+    
+    // Aggregate usage for this task category
+    for (const line of lines) {
+      try {
+        const entry = JSON.parse(line);
+        
+        if (entry.message && entry.message.usage && entry.message.model) {
+          const model = entry.message.model;
+          const u = entry.message.usage;
+          
+          // Initialize task category if needed
+          if (!taskUsage[taskCategory]) {
+            taskUsage[taskCategory] = {
+              totalTokens: 0,
+              cost: 0,
+              runs: 0,
+              models: {}
+            };
+          }
+          
+          // Initialize model breakdown for this task
+          if (!taskUsage[taskCategory].models[model]) {
+            taskUsage[taskCategory].models[model] = {
+              input: 0,
+              output: 0,
+              cacheRead: 0,
+              cacheWrite: 0,
+              totalTokens: 0,
+              cost: 0,
+              calls: 0
+            };
+          }
+          
+          const tokens = u.totalTokens || (u.input || 0) + (u.output || 0) + (u.cacheRead || 0) + (u.cacheWrite || 0);
+          
+          // Calculate cost
+          let cost;
+          if (u.cost && u.cost.total) {
+            cost = u.cost.total;
+          } else {
+            const pricing = MODEL_PRICING[model] || MODEL_PRICING['claude-sonnet-4-5'];
+            cost = (
+              ((u.input || 0) / 1000000) * pricing.input +
+              ((u.output || 0) / 1000000) * pricing.output +
+              ((u.cacheRead || 0) / 1000000) * pricing.cacheRead +
+              ((u.cacheWrite || 0) / 1000000) * pricing.cacheWrite
+            );
+          }
+          
+          // Update task totals
+          taskUsage[taskCategory].totalTokens += tokens;
+          taskUsage[taskCategory].cost += cost;
+          
+          // Update model breakdown
+          taskUsage[taskCategory].models[model].input += u.input || 0;
+          taskUsage[taskCategory].models[model].output += u.output || 0;
+          taskUsage[taskCategory].models[model].cacheRead += u.cacheRead || 0;
+          taskUsage[taskCategory].models[model].cacheWrite += u.cacheWrite || 0;
+          taskUsage[taskCategory].models[model].totalTokens += tokens;
+          taskUsage[taskCategory].models[model].cost += cost;
+          taskUsage[taskCategory].models[model].calls++;
+        }
+      } catch (e) {
+        // Skip malformed lines
+      }
+    }
+    
+    // Increment run count for this task (one session = one run)
+    if (Object.keys(taskUsage).length > 0) {
+      for (const taskCategory of Object.keys(taskUsage)) {
+        taskUsage[taskCategory].runs = (taskUsage[taskCategory].runs || 0) + 1;
+      }
+    }
+    
+  } catch (e) {
+    console.error(`Error reading session file for tasks ${filePath}:`, e.message);
+  }
+  
+  return taskUsage;
+}
+
+// Aggregate task usage across all sessions
+function aggregateTaskUsage(parsedTaskFiles) {
+  const aggregated = {};
+  
+  for (const taskUsage of parsedTaskFiles) {
+    for (const [taskCategory, data] of Object.entries(taskUsage)) {
+      if (!aggregated[taskCategory]) {
+        aggregated[taskCategory] = {
+          totalTokens: 0,
+          cost: 0,
+          runs: 0,
+          models: {}
+        };
+      }
+      
+      aggregated[taskCategory].totalTokens += data.totalTokens;
+      aggregated[taskCategory].cost += data.cost;
+      aggregated[taskCategory].runs += data.runs;
+      
+      // Aggregate model breakdown
+      for (const [model, modelData] of Object.entries(data.models)) {
+        if (!aggregated[taskCategory].models[model]) {
+          aggregated[taskCategory].models[model] = {
+            input: 0,
+            output: 0,
+            cacheRead: 0,
+            cacheWrite: 0,
+            totalTokens: 0,
+            cost: 0,
+            calls: 0
+          };
+        }
+        
+        aggregated[taskCategory].models[model].input += modelData.input;
+        aggregated[taskCategory].models[model].output += modelData.output;
+        aggregated[taskCategory].models[model].cacheRead += modelData.cacheRead;
+        aggregated[taskCategory].models[model].cacheWrite += modelData.cacheWrite;
+        aggregated[taskCategory].models[model].totalTokens += modelData.totalTokens;
+        aggregated[taskCategory].models[model].cost += modelData.cost;
+        aggregated[taskCategory].models[model].calls += modelData.calls;
+      }
+    }
+  }
+  
+  return aggregated;
+}
+
+// GET /api/usage-by-task - Task-based usage breakdown
+app.get('/api/usage-by-task', requireAuth, (req, res) => {
+  try {
+    const days = parseInt(req.query.days) || 30;
+    const cutoffTime = Date.now() - (days * 24 * 60 * 60 * 1000);
+    
+    if (!fs.existsSync(SESSIONS_DIR)) {
+      return res.json({ tasks: {}, totals: { tokens: 0, cost: 0, runs: 0 }, period: days });
+    }
+    
+    // Load sessions.json to get labels
+    const sessionsFile = path.join(SESSIONS_DIR, 'sessions.json');
+    let sessionsData = {};
+    if (fs.existsSync(sessionsFile)) {
+      sessionsData = JSON.parse(fs.readFileSync(sessionsFile, 'utf8'));
+    }
+    
+    // Get all session files within the time period
+    const files = fs.readdirSync(SESSIONS_DIR)
+      .filter(f => f.endsWith('.jsonl') && !f.includes('.lock'))
+      .map(f => {
+        const filePath = path.join(SESSIONS_DIR, f);
+        const stat = fs.statSync(filePath);
+        const sessionId = f.replace('.jsonl', '');
+        
+        // Find matching session in sessions.json
+        let sessionKey = null;
+        let sessionLabel = null;
+        for (const [key, value] of Object.entries(sessionsData)) {
+          if (value.sessionId === sessionId) {
+            sessionKey = key;
+            sessionLabel = value.label;
+            break;
+          }
+        }
+        
+        return { 
+          name: f, 
+          path: filePath, 
+          mtime: stat.mtimeMs,
+          sessionId,
+          sessionKey: sessionKey || sessionId,
+          sessionLabel
+        };
+      })
+      .filter(f => f.mtime >= cutoffTime);
+    
+    // Parse each session file for task categorization
+    const parsedTaskFiles = files.map(f => 
+      parseSessionFileByTask(f.path, f.sessionKey, f.sessionLabel)
+    );
+    
+    // Aggregate task usage
+    const aggregated = aggregateTaskUsage(parsedTaskFiles);
+    
+    // Calculate totals
+    let totalTokens = 0;
+    let totalCost = 0;
+    let totalRuns = 0;
+    
+    for (const data of Object.values(aggregated)) {
+      totalTokens += data.totalTokens;
+      totalCost += data.cost;
+      totalRuns += data.runs;
+    }
+    
+    // Convert cost from USD to EUR
+    const usdToEur = 0.92;
+    const tasks = {};
+    for (const [taskCategory, data] of Object.entries(aggregated)) {
+      tasks[taskCategory] = {
+        ...data,
+        costEur: data.cost * usdToEur,
+        percentage: totalTokens > 0 ? (data.totalTokens / totalTokens * 100) : 0,
+        costPercentage: totalCost > 0 ? (data.cost / totalCost * 100) : 0
+      };
+    }
+    
+    res.json({
+      tasks,
+      totals: {
+        tokens: totalTokens,
+        cost: totalCost,
+        costEur: totalCost * usdToEur,
+        runs: totalRuns
+      },
+      period: days,
+      sessionsProcessed: files.length,
+      timestamp: Date.now()
+    });
+  } catch (e) {
+    console.error('Task usage API error:', e);
+    res.status(500).json({ error: 'Failed to aggregate task usage data' });
+  }
+});
+
+// ==================== END TASK-BASED USAGE API ====================
 
 // ==================== NEWSLETTERS API ====================
 const NEWSLETTERS_FILE = path.join(process.env.HOME, '.openclaw', 'workspace', 'newsletters.json');
@@ -925,9 +1607,12 @@ app.put('/api/newsletters/:id', requireAuth, (req, res) => {
     // Update fields
     const updates = req.body;
     if (updates.recipient) newsletters[idx].recipient = updates.recipient;
+    if (updates.cc !== undefined) newsletters[idx].cc = updates.cc;
     if (updates.schedule) newsletters[idx].schedule = updates.schedule;
     if (updates.prompt !== undefined) newsletters[idx].prompt = updates.prompt;
     if (updates.language) newsletters[idx].language = updates.language;
+    if (updates.location) newsletters[idx].location = updates.location;
+    if (updates.contentToggles) newsletters[idx].contentToggles = updates.contentToggles;
     if (updates.enabled !== undefined) newsletters[idx].enabled = updates.enabled;
     if (updates.lastSent) newsletters[idx].lastSent = updates.lastSent;
     
@@ -954,6 +1639,94 @@ app.delete('/api/newsletters/:id', requireAuth, (req, res) => {
   } catch (e) {
     console.error('Morning Boost delete error:', e);
     res.status(500).json({ error: 'Failed to delete newsletter' });
+  }
+});
+
+// POST regenerate prompt from content toggles
+app.post('/api/newsletters/:id/regenerate-prompt', requireAuth, (req, res) => {
+  try {
+    const newsletters = loadNewsletters();
+    const idx = newsletters.findIndex(n => n.id === req.params.id);
+    if (idx === -1) {
+      return res.status(404).json({ error: 'Morning Boost not found' });
+    }
+    
+    const newsletter = newsletters[idx];
+    const { contentToggles, language, location } = req.body;
+    
+    // Build prompt dynamically based on toggles
+    let prompt = `Send morning newsletter to ${newsletter.recipient.name} at ${newsletter.recipient.email}`;
+    if (newsletter.cc) {
+      prompt += ` with CC to ${newsletter.cc}`;
+    }
+    prompt += '.\n\n';
+    
+    const lang = language || newsletter.language || 'English';
+    const isGerman = lang === 'German';
+    
+    // Add content sections based on toggles
+    if (contentToggles.weather) {
+      const loc = location || 'München';
+      prompt += `1. Start with weather for ${loc} (1 sentence + emoji`;
+      if (isGerman) {
+        prompt += '; wenn bemerkenswertes Wetter in 1-2 Wochen, kurz erwähnen';
+      }
+      prompt += ').\n';
+    }
+    
+    // News sections
+    const newsSections = [];
+    if (contentToggles.newsGermany) newsSections.push('Germany');
+    if (contentToggles.newsWorld) newsSections.push('world');
+    if (contentToggles.newsCanada) newsSections.push('Canada');
+    
+    if (newsSections.length > 0) {
+      prompt += `2. Use web_search to find 3-4 positive news from ${newsSections.join(' and ')} (erfreuliche, hoffnungsvolle News).\n`;
+    }
+    
+    // Autonomous driving
+    if (contentToggles.autonomousDriving) {
+      prompt += `3. Add autonomous driving news section (brief, 2-3 recent developments).\n`;
+    }
+    
+    // Special sections
+    if (contentToggles.specialSections && contentToggles.specialSections.length > 0) {
+      contentToggles.specialSections.forEach((section, i) => {
+        prompt += `${3 + (contentToggles.autonomousDriving ? 1 : 0) + i}. ${section}\n`;
+      });
+    }
+    
+    // Joke
+    if (contentToggles.joke) {
+      const nextNum = 3 + (contentToggles.autonomousDriving ? 1 : 0) + (contentToggles.specialSections?.length || 0);
+      if (isGerman) {
+        prompt += `${nextNum}. Add 'Witz des Tages' (funny joke in German - clever, NOT boring wordplay like 'Treffen sich zwei Berge').\n`;
+      } else {
+        prompt += `${nextNum}. Add 'Joke of the day' (funny, clever humor).\n`;
+      }
+    }
+    
+    // Language and tone
+    prompt += `\nWrite in ${lang}, warm and personal tone. `;
+    if (isGerman) {
+      prompt += `Schönes HTML Format mit LINKS zu allen Quellen. `;
+    } else {
+      prompt += `Beautiful HTML format with LINKS to all sources. `;
+    }
+    
+    // Signature
+    if (isGerman) {
+      prompt += `Ende mit: 'Liebe Grüße, Jarvis 🦊 (Christophers KI)'.`;
+    } else {
+      prompt += `End with: 'Best regards, Jarvis 🦊 (Christopher's AI)'.`;
+    }
+    
+    prompt += `\n\nSend via: node ~/.openclaw/workspace/scripts/send-email.js --to "${newsletter.recipient.email}" --cc "${newsletter.cc || 'christopherbennett92@gmail.com'}" --subject "Your Morning Boost ☀️"`;
+    
+    res.json({ success: true, prompt });
+  } catch (e) {
+    console.error('Prompt regeneration error:', e);
+    res.status(500).json({ error: 'Failed to regenerate prompt' });
   }
 });
 

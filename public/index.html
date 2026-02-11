@@ -2150,6 +2150,233 @@
       color: var(--text-muted);
     }
 
+    /* ==================== TASK USAGE SECTION ==================== */
+    .task-usage-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 24px;
+      backdrop-filter: blur(20px);
+    }
+
+    .task-usage-header {
+      margin-bottom: 24px;
+    }
+
+    .task-usage-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .task-usage-subtitle {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin: 0;
+    }
+
+    .task-usage-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .task-usage-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .task-usage-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    .task-usage-card.expanded {
+      border-color: var(--accent);
+    }
+
+    .task-usage-card-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 12px;
+    }
+
+    .task-usage-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent) 0%, #059669 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+
+    .task-usage-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .task-usage-name {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: var(--text-primary);
+    }
+
+    .task-usage-meta {
+      font-size: 13px;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .task-usage-stats {
+      display: flex;
+      gap: 24px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .task-usage-stat {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .task-usage-stat-value {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .task-usage-stat-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .task-usage-progress {
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .task-usage-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent) 0%, #059669 100%);
+      border-radius: 3px;
+      transition: width 0.6s ease;
+    }
+
+    .task-usage-percentage {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-align: right;
+    }
+
+    .task-usage-expand-hint {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-align: center;
+      margin-top: 8px;
+      opacity: 0.6;
+    }
+
+    .task-usage-details {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+      opacity: 0;
+    }
+
+    .task-usage-card.expanded .task-usage-details {
+      max-height: 500px;
+      opacity: 1;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    .task-usage-card.expanded .task-usage-expand-hint {
+      display: none;
+    }
+
+    .task-usage-models-breakdown {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .task-usage-model-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 12px;
+      background: var(--bg-primary);
+      border-radius: 8px;
+    }
+
+    .task-usage-model-emoji {
+      font-size: 18px;
+    }
+
+    .task-usage-model-name {
+      flex: 1;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .task-usage-model-tokens {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    .task-usage-model-cost {
+      font-size: 12px;
+      color: var(--text-muted);
+      min-width: 60px;
+      text-align: right;
+    }
+
+    /* Responsive task usage */
+    @media (max-width: 768px) {
+      .task-usage-section {
+        padding: 16px;
+      }
+
+      .task-usage-card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+
+      .task-usage-stats {
+        width: 100%;
+        justify-content: space-around;
+      }
+
+      .task-usage-stat {
+        text-align: center;
+      }
+    }
+
     /* Responsive usage page */
     @media (max-width: 768px) {
       .usage-summary-card {
@@ -2233,6 +2460,392 @@
       .usage-summary-value { font-size: 20px; }
       .usage-model-emoji { font-size: 22px; }
       .usage-chart-container { height: 200px; }
+    }
+
+    /* ==================== TASK USAGE SECTION ==================== */
+    .task-usage-section {
+      margin-top: 32px;
+    }
+
+    .task-usage-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .task-usage-title {
+      font-size: 18px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .task-usage-subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .task-usage-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .task-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .task-card:hover {
+      border-color: rgba(255,255,255,0.15);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    }
+
+    .task-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--task-color, var(--accent));
+    }
+
+    .task-card-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .task-card-emoji {
+      font-size: 32px;
+      flex-shrink: 0;
+    }
+
+    .task-card-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .task-card-name {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .task-card-runs {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .task-card-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .task-stat {
+      text-align: center;
+      padding: 10px 8px;
+      background: var(--bg-secondary);
+      border-radius: 10px;
+    }
+
+    .task-stat-value {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 2px;
+    }
+
+    .task-stat-value.cost {
+      color: var(--task-color, var(--accent));
+    }
+
+    .task-stat-label {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .task-card-progress {
+      height: 6px;
+      background: var(--bg-secondary);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+
+    .task-card-progress-fill {
+      height: 100%;
+      background: var(--task-color, var(--accent));
+      border-radius: 3px;
+      transition: width 0.5s ease;
+    }
+
+    .task-card-percentage {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .task-card-percentage span:last-child {
+      font-weight: 600;
+      color: var(--task-color, var(--accent));
+    }
+
+    .task-card-expand {
+      display: none;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    .task-card.expanded .task-card-expand {
+      display: block;
+    }
+
+    .task-card-expand-title {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 10px;
+    }
+
+    .task-model-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      background: var(--bg-secondary);
+      border-radius: 8px;
+      margin-bottom: 6px;
+      font-size: 13px;
+    }
+
+    .task-model-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .task-model-name {
+      color: var(--text-secondary);
+    }
+
+    .task-model-value {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .task-card-collapse-btn {
+      margin-top: 12px;
+      width: 100%;
+      padding: 8px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-muted);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .task-card-collapse-btn:hover {
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+    }
+
+    /* Task chart */
+    .task-chart-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .task-chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .task-chart-title {
+      font-size: 16px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .task-chart-container {
+      height: 300px;
+      position: relative;
+    }
+
+    /* Task table */
+    .task-table-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .task-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .task-table th {
+      text-align: left;
+      padding: 14px 16px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .task-table td {
+      padding: 14px 16px;
+      font-size: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .task-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .task-table tr:hover td {
+      background: rgba(255,255,255,0.02);
+    }
+
+    .task-table-task {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .task-table-emoji {
+      font-size: 20px;
+    }
+
+    .task-table-name {
+      font-weight: 500;
+    }
+
+    .task-table-value {
+      font-weight: 600;
+    }
+
+    .task-table-bar {
+      width: 100px;
+      height: 8px;
+      background: var(--bg-secondary);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .task-table-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.5s ease;
+    }
+
+    .task-empty {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--text-muted);
+    }
+
+    .task-empty-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+
+    /* Responsive task section */
+    @media (max-width: 768px) {
+      .task-usage-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .task-card {
+        padding: 16px;
+      }
+
+      .task-card-emoji {
+        font-size: 28px;
+      }
+
+      .task-card-name {
+        font-size: 15px;
+      }
+
+      .task-card-stats {
+        gap: 8px;
+      }
+
+      .task-stat {
+        padding: 8px 6px;
+      }
+
+      .task-stat-value {
+        font-size: 16px;
+      }
+
+      .task-chart-card {
+        padding: 16px;
+      }
+
+      .task-chart-container {
+        height: 250px;
+      }
+
+      .task-table th,
+      .task-table td {
+        padding: 10px 12px;
+        font-size: 13px;
+      }
+
+      .task-table-bar {
+        width: 60px;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .task-card-stats {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .task-stat:nth-child(3) {
+        grid-column: span 2;
+      }
+
+      .task-stat-value {
+        font-size: 14px;
+      }
     }
 
     /* ==================== MORNING BOOST PAGE ==================== */
@@ -3350,6 +3963,20 @@
           </div>
         </div>
 
+        <!-- Task-Based Cost Tracking -->
+        <div class="task-usage-section">
+          <div class="task-usage-header">
+            <h2 class="task-usage-title">💼 Cost by Task Type</h2>
+            <p class="task-usage-subtitle">See what each type of activity costs</p>
+          </div>
+          <div class="task-usage-grid" id="taskUsageGrid">
+            <div class="empty-state">
+              <div class="empty-state-icon">⏳</div>
+              <p>Loading task breakdown...</p>
+            </div>
+          </div>
+        </div>
+
         <!-- Usage Breakdown Card -->
         <div class="usage-breakdown-card">
           <div class="usage-breakdown-title">📋 Token Breakdown</div>
@@ -3358,6 +3985,54 @@
               <div class="empty-state-icon">⏳</div>
               <p>Loading...</p>
             </div>
+          </div>
+        </div>
+
+        <!-- Task Usage Section -->
+        <div class="task-usage-section">
+          <div class="task-usage-header">
+            <div>
+              <div class="task-usage-title">🎯 Cost by Task Type</div>
+              <div class="task-usage-subtitle">See what each activity costs</div>
+            </div>
+          </div>
+
+          <!-- Task Chart -->
+          <div class="task-chart-card">
+            <div class="task-chart-header">
+              <div class="task-chart-title">📊 Task Cost Distribution</div>
+            </div>
+            <div class="task-chart-container">
+              <canvas id="taskCostChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Task Cards Grid -->
+          <div class="task-usage-grid" id="taskUsageGrid">
+            <div class="empty-state">
+              <div class="empty-state-icon">🎯</div>
+              <p>Loading task data...</p>
+            </div>
+          </div>
+
+          <!-- Task Table -->
+          <div class="task-table-card" id="taskTableCard">
+            <table class="task-table">
+              <thead>
+                <tr>
+                  <th>Task Type</th>
+                  <th>Runs</th>
+                  <th>Tokens</th>
+                  <th>Cost (€)</th>
+                  <th>Share</th>
+                </tr>
+              </thead>
+              <tbody id="taskTableBody">
+                <tr>
+                  <td colspan="5" style="text-align: center; color: var(--text-muted);">Loading...</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -3460,30 +4135,39 @@
 
   <!-- Morning Boost Modal -->
   <div class="newsletter-modal-overlay" id="newsletterModal">
-    <div class="newsletter-modal">
+    <div class="newsletter-modal" style="max-width: 700px;">
       <div class="newsletter-modal-header">
         <h3 class="newsletter-modal-title" id="newsletterModalTitle">Add Morning Boost</h3>
         <button class="newsletter-modal-close" id="newsletterModalClose">×</button>
       </div>
       <div class="newsletter-modal-body">
         <input type="hidden" id="newsletterEditId">
+        
+        <!-- Basic Info -->
         <div class="newsletter-form-row">
           <div class="newsletter-form-group">
-            <label class="newsletter-form-label">Recipient Name</label>
+            <label class="newsletter-form-label">👤 Recipient Name</label>
             <input type="text" class="newsletter-form-input" id="newsletterRecipientName" placeholder="e.g., Mom">
           </div>
           <div class="newsletter-form-group">
-            <label class="newsletter-form-label">Email Address</label>
+            <label class="newsletter-form-label">📧 Email Address</label>
             <input type="email" class="newsletter-form-input" id="newsletterRecipientEmail" placeholder="email@example.com">
           </div>
         </div>
+        
+        <div class="newsletter-form-group">
+          <label class="newsletter-form-label">📬 CC Address (Optional)</label>
+          <input type="email" class="newsletter-form-input" id="newsletterCC" placeholder="christopherbennett92@gmail.com">
+        </div>
+        
+        <!-- Schedule -->
         <div class="newsletter-form-row">
           <div class="newsletter-form-group">
-            <label class="newsletter-form-label">Send Time</label>
+            <label class="newsletter-form-label">⏰ Send Time</label>
             <input type="time" class="newsletter-form-input" id="newsletterTime" value="09:00">
           </div>
           <div class="newsletter-form-group">
-            <label class="newsletter-form-label">Timezone</label>
+            <label class="newsletter-form-label">🌍 Timezone</label>
             <select class="newsletter-form-select" id="newsletterTimezone">
               <option value="UTC">UTC</option>
               <option value="Europe/Berlin">Europe/Berlin</option>
@@ -3497,27 +4181,75 @@
             </select>
           </div>
         </div>
-        <div class="newsletter-form-group">
-          <label class="newsletter-form-label">Language</label>
-          <select class="newsletter-form-select" id="newsletterLanguage">
-            <option value="English">English</option>
-            <option value="German">German</option>
-            <option value="Spanish">Spanish</option>
-            <option value="French">French</option>
-            <option value="Italian">Italian</option>
-            <option value="Portuguese">Portuguese</option>
-            <option value="Japanese">Japanese</option>
-            <option value="Chinese">Chinese</option>
-          </select>
+        
+        <!-- Language & Location -->
+        <div class="newsletter-form-row">
+          <div class="newsletter-form-group">
+            <label class="newsletter-form-label">🗣️ Language</label>
+            <select class="newsletter-form-select" id="newsletterLanguage" onchange="regeneratePrompt()">
+              <option value="English">🇬🇧 English</option>
+              <option value="German">🇩🇪 German</option>
+              <option value="Spanish">🇪🇸 Spanish</option>
+              <option value="French">🇫🇷 French</option>
+              <option value="Italian">🇮🇹 Italian</option>
+              <option value="Portuguese">🇵🇹 Portuguese</option>
+              <option value="Japanese">🇯🇵 Japanese</option>
+              <option value="Chinese">🇨🇳 Chinese</option>
+            </select>
+          </div>
+          <div class="newsletter-form-group">
+            <label class="newsletter-form-label">📍 Weather Location</label>
+            <input type="text" class="newsletter-form-input" id="newsletterLocation" placeholder="e.g., München" onchange="regeneratePrompt()">
+          </div>
         </div>
+        
+        <!-- Content Toggles -->
         <div class="newsletter-form-group">
-          <label class="newsletter-form-label">Prompt / Instructions</label>
-          <textarea class="newsletter-form-textarea" id="newsletterPrompt" placeholder="Describe what kind of newsletter content to generate..."></textarea>
+          <label class="newsletter-form-label" style="margin-bottom: 12px;">✅ Content Sections</label>
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; background: var(--bg-primary); padding: 16px; border-radius: 10px; border: 1px solid var(--border);">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px; border-radius: 6px; transition: background 0.2s;" onmouseover="this.style.background='var(--bg-card)'" onmouseout="this.style.background='transparent'">
+              <input type="checkbox" id="toggleWeather" onchange="regeneratePrompt()" checked style="width: 18px; height: 18px; cursor: pointer;">
+              <span style="font-size: 13px;">☀️ Weather</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px; border-radius: 6px; transition: background 0.2s;" onmouseover="this.style.background='var(--bg-card)'" onmouseout="this.style.background='transparent'">
+              <input type="checkbox" id="toggleNewsGermany" onchange="regeneratePrompt()" checked style="width: 18px; height: 18px; cursor: pointer;">
+              <span style="font-size: 13px;">🇩🇪 News - Germany</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px; border-radius: 6px; transition: background 0.2s;" onmouseover="this.style.background='var(--bg-card)'" onmouseout="this.style.background='transparent'">
+              <input type="checkbox" id="toggleNewsWorld" onchange="regeneratePrompt()" checked style="width: 18px; height: 18px; cursor: pointer;">
+              <span style="font-size: 13px;">🌍 News - World</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px; border-radius: 6px; transition: background 0.2s;" onmouseover="this.style.background='var(--bg-card)'" onmouseout="this.style.background='transparent'">
+              <input type="checkbox" id="toggleNewsCanada" onchange="regeneratePrompt()" style="width: 18px; height: 18px; cursor: pointer;">
+              <span style="font-size: 13px;">🇨🇦 News - Canada</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px; border-radius: 6px; transition: background 0.2s;" onmouseover="this.style.background='var(--bg-card)'" onmouseout="this.style.background='transparent'">
+              <input type="checkbox" id="toggleAutoDriving" onchange="regeneratePrompt()" style="width: 18px; height: 18px; cursor: pointer;">
+              <span style="font-size: 13px;">🚗 Autonomous Driving</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px; border-radius: 6px; transition: background 0.2s;" onmouseover="this.style.background='var(--bg-card)'" onmouseout="this.style.background='transparent'">
+              <input type="checkbox" id="toggleJoke" onchange="regeneratePrompt()" checked style="width: 18px; height: 18px; cursor: pointer;">
+              <span style="font-size: 13px;">😄 Joke of the Day</span>
+            </label>
+          </div>
+        </div>
+        
+        <!-- Special Sections -->
+        <div class="newsletter-form-group">
+          <label class="newsletter-form-label">⭐ Special Sections (one per line)</label>
+          <textarea class="newsletter-form-textarea" id="newsletterSpecialSections" placeholder="e.g., Takayasu Arteritis Updates (only if NEW developments)" rows="3" onchange="regeneratePrompt()"></textarea>
+        </div>
+        
+        <!-- Prompt (Auto-Generated) -->
+        <div class="newsletter-form-group">
+          <label class="newsletter-form-label">📝 Prompt (Auto-Generated - Advanced users can edit)</label>
+          <textarea class="newsletter-form-textarea" id="newsletterPrompt" placeholder="Generated automatically based on toggles..." rows="8"></textarea>
+          <button type="button" onclick="regeneratePrompt()" style="margin-top: 8px; padding: 8px 14px; background: var(--accent); border: none; border-radius: 8px; color: white; cursor: pointer; font-size: 12px; font-weight: 500;">🔄 Regenerate from Toggles</button>
         </div>
       </div>
       <div class="newsletter-modal-footer">
         <button class="newsletter-modal-btn cancel" id="newsletterModalCancel">Cancel</button>
-        <button class="newsletter-modal-btn save" id="newsletterModalSave">Save Morning Boost</button>
+        <button class="newsletter-modal-btn save" id="newsletterModalSave">💾 Save Morning Boost</button>
       </div>
     </div>
   </div>
@@ -4664,6 +5396,16 @@
     let newsletters = [];
     const newsletterModal = document.getElementById('newsletterModal');
 
+    // Load fold state from localStorage
+    function getNewsletterFoldState(id) {
+      const state = localStorage.getItem(`newsletter-fold-${id}`);
+      return state === 'expanded';
+    }
+
+    function setNewsletterFoldState(id, expanded) {
+      localStorage.setItem(`newsletter-fold-${id}`, expanded ? 'expanded' : 'collapsed');
+    }
+
     async function loadNewsletters() {
       const btn = document.getElementById('refreshNewsletters');
       btn.classList.add('loading');
@@ -4698,11 +5440,25 @@
         const { time, frequency } = formatScheduleCompact(nl.schedule);
         const lastSentText = nl.lastSent ? formatLastSent(nl.lastSent) : 'Never sent';
         const createdDate = new Date(nl.createdAt).toLocaleDateString();
+        const isExpanded = getNewsletterFoldState(nl.id);
+        
+        // Content toggles summary
+        const toggles = nl.contentToggles || {};
+        const activeToggles = [];
+        if (toggles.weather) activeToggles.push('☀️ Weather');
+        if (toggles.newsGermany) activeToggles.push('🇩🇪 DE News');
+        if (toggles.newsWorld) activeToggles.push('🌍 World News');
+        if (toggles.newsCanada) activeToggles.push('🇨🇦 CA News');
+        if (toggles.autonomousDriving) activeToggles.push('🚗 Auto Driving');
+        if (toggles.joke) activeToggles.push('😄 Joke');
+        if (toggles.specialSections && toggles.specialSections.length > 0) {
+          activeToggles.push(`⭐ ${toggles.specialSections.length} Special`);
+        }
         
         return `
-          <div class="newsletter-card ${nl.enabled ? '' : 'disabled'}" data-id="${nl.id}" onclick="toggleNewsletterCard(this, event)">
+          <div class="newsletter-card ${nl.enabled ? '' : 'disabled'} ${isExpanded ? 'expanded' : ''}" data-id="${nl.id}">
             <!-- Compact View (Always Visible) -->
-            <div class="newsletter-compact">
+            <div class="newsletter-compact" onclick="toggleNewsletterCard('${nl.id}', event)">
               <div class="newsletter-icon">${nl.enabled ? '✉️' : '📪'}</div>
               <div class="newsletter-main-info">
                 <div class="newsletter-name">${esc(nl.recipient.name || 'Unnamed')}</div>
@@ -4720,14 +5476,14 @@
                 <span class="newsletter-expand-icon">▼</span>
               </div>
             </div>
-            <div class="newsletter-expand-hint">Click to expand</div>
+            ${!isExpanded ? '<div class="newsletter-expand-hint">Click to expand</div>' : ''}
             
             <!-- Expanded Details -->
             <div class="newsletter-details">
               <div class="newsletter-details-grid">
                 <div class="newsletter-detail-item">
-                  <div class="newsletter-detail-label">⏰ Cron Expression</div>
-                  <div class="newsletter-detail-value"><code>${esc(nl.schedule?.cron || '0 9 * * *')}</code></div>
+                  <div class="newsletter-detail-label">📍 Location</div>
+                  <div class="newsletter-detail-value">${esc(nl.location || 'Not set')}</div>
                 </div>
                 <div class="newsletter-detail-item">
                   <div class="newsletter-detail-label">🌐 Language</div>
@@ -4738,10 +5494,19 @@
                   <div class="newsletter-detail-value">${createdDate}</div>
                 </div>
                 <div class="newsletter-detail-item">
-                  <div class="newsletter-detail-label">🔑 Job ID</div>
-                  <div class="newsletter-detail-value">${esc(nl.cronJobId || nl.id)}</div>
+                  <div class="newsletter-detail-label">📬 CC</div>
+                  <div class="newsletter-detail-value">${esc(nl.cc || 'None')}</div>
                 </div>
               </div>
+              
+              <!-- Content Toggles Summary -->
+              <div class="newsletter-prompt">
+                <div class="newsletter-prompt-label">✅ Active Content Sections</div>
+                <div class="newsletter-prompt-text" style="max-height: none; font-size: 13px; line-height: 1.8;">
+                  ${activeToggles.length > 0 ? activeToggles.join(' • ') : 'No content sections active'}
+                </div>
+              </div>
+              
               <div class="newsletter-prompt">
                 <div class="newsletter-prompt-label">📝 Prompt / Instructions</div>
                 <div class="newsletter-prompt-text">${esc(nl.prompt || 'No prompt configured')}</div>
@@ -4750,21 +5515,30 @@
                 <button class="newsletter-action-btn" onclick="event.stopPropagation(); editNewsletter('${nl.id}')">✏️ Edit</button>
                 <button class="newsletter-action-btn delete" onclick="event.stopPropagation(); deleteNewsletter('${nl.id}')">🗑️ Delete</button>
               </div>
-              <button class="newsletter-collapse-btn" onclick="event.stopPropagation(); collapseNewsletterCard(this.closest('.newsletter-card'))">▲ Collapse</button>
+              <button class="newsletter-collapse-btn" onclick="event.stopPropagation(); collapseNewsletterCard('${nl.id}')">▲ Collapse</button>
             </div>
           </div>
         `;
       }).join('');
     }
 
-    function toggleNewsletterCard(card, event) {
-      // Don't expand if clicking toggle or already expanded (let collapse button handle it)
-      if (event.target.closest('.newsletter-toggle') || card.classList.contains('expanded')) return;
-      card.classList.add('expanded');
+    function toggleNewsletterCard(id, event) {
+      // Don't expand/collapse if clicking on buttons inside
+      if (event && (event.target.closest('.newsletter-toggle') || event.target.closest('button'))) return;
+      
+      const card = document.querySelector(`.newsletter-card[data-id="${id}"]`);
+      if (!card) return;
+      
+      const isExpanded = card.classList.contains('expanded');
+      card.classList.toggle('expanded');
+      setNewsletterFoldState(id, !isExpanded);
     }
 
-    function collapseNewsletterCard(card) {
+    function collapseNewsletterCard(id) {
+      const card = document.querySelector(`.newsletter-card[data-id="${id}"]`);
+      if (!card) return;
       card.classList.remove('expanded');
+      setNewsletterFoldState(id, false);
     }
 
     function formatScheduleCompact(schedule) {
@@ -4842,17 +5616,125 @@
       }
     }
 
+    // Dynamic prompt regeneration based on toggles
+    async function regeneratePrompt() {
+      const name = document.getElementById('newsletterRecipientName').value || 'Recipient';
+      const email = document.getElementById('newsletterRecipientEmail').value || 'email@example.com';
+      const cc = document.getElementById('newsletterCC').value;
+      const language = document.getElementById('newsletterLanguage').value;
+      const location = document.getElementById('newsletterLocation').value || 'München';
+      
+      // Get content toggles
+      const contentToggles = {
+        weather: document.getElementById('toggleWeather').checked,
+        newsGermany: document.getElementById('toggleNewsGermany').checked,
+        newsWorld: document.getElementById('toggleNewsWorld').checked,
+        newsCanada: document.getElementById('toggleNewsCanada').checked,
+        autonomousDriving: document.getElementById('toggleAutoDriving').checked,
+        joke: document.getElementById('toggleJoke').checked,
+        specialSections: document.getElementById('newsletterSpecialSections').value.split('\n').filter(s => s.trim())
+      };
+      
+      // Build prompt
+      let prompt = `Send morning newsletter to ${name} at ${email}`;
+      if (cc) prompt += ` with CC to ${cc}`;
+      prompt += '.\n\n';
+      
+      const isGerman = language === 'German';
+      
+      // Add content sections
+      if (contentToggles.weather) {
+        prompt += `1. Start with weather for ${location} (1 sentence + emoji`;
+        if (isGerman) {
+          prompt += '; wenn bemerkenswertes Wetter in 1-2 Wochen, kurz erwähnen';
+        }
+        prompt += ').\n';
+      }
+      
+      // News sections
+      const newsSections = [];
+      if (contentToggles.newsGermany) newsSections.push('Germany');
+      if (contentToggles.newsWorld) newsSections.push('world');
+      if (contentToggles.newsCanada) newsSections.push('Canada');
+      
+      if (newsSections.length > 0) {
+        prompt += `2. Use web_search to find 3-4 positive news from ${newsSections.join(' and ')} (erfreuliche, hoffnungsvolle News).\n`;
+      }
+      
+      // Autonomous driving
+      if (contentToggles.autonomousDriving) {
+        prompt += `3. Add autonomous driving news section (brief, 2-3 recent developments).\n`;
+      }
+      
+      // Special sections
+      if (contentToggles.specialSections && contentToggles.specialSections.length > 0) {
+        contentToggles.specialSections.forEach((section, i) => {
+          const num = 3 + (contentToggles.autonomousDriving ? 1 : 0) + i;
+          prompt += `${num}. ${section}\n`;
+        });
+      }
+      
+      // Joke
+      if (contentToggles.joke) {
+        const nextNum = 3 + (contentToggles.autonomousDriving ? 1 : 0) + (contentToggles.specialSections?.length || 0);
+        if (isGerman) {
+          prompt += `${nextNum}. Add 'Witz des Tages' (funny joke in German - clever, NOT boring wordplay).\n`;
+        } else {
+          prompt += `${nextNum}. Add 'Joke of the day' (funny, clever humor).\n`;
+        }
+      }
+      
+      // Language and tone
+      prompt += `\nWrite in ${language}, warm and personal tone. `;
+      if (isGerman) {
+        prompt += `Schönes HTML Format mit LINKS zu allen Quellen. `;
+      } else {
+        prompt += `Beautiful HTML format with LINKS to all sources. `;
+      }
+      
+      // Signature
+      if (isGerman) {
+        prompt += `Ende mit: 'Liebe Grüße, Jarvis 🦊 (Christophers KI)'.`;
+      } else {
+        prompt += `End with: 'Best regards, Jarvis 🦊 (Christopher's AI)'.`;
+      }
+      
+      prompt += `\n\nSend via: node ~/.openclaw/workspace/scripts/send-email.js --to "${email}" --cc "${cc || 'christopherbennett92@gmail.com'}" --subject "Your Morning Boost ☀️"`;
+      
+      document.getElementById('newsletterPrompt').value = prompt;
+    }
+
     function openNewsletterModal(newsletter = null) {
       const isEdit = !!newsletter;
       document.getElementById('newsletterModalTitle').textContent = isEdit ? 'Edit Morning Boost' : 'Add Morning Boost';
       document.getElementById('newsletterEditId').value = isEdit ? newsletter.id : '';
       
+      // Basic fields
       document.getElementById('newsletterRecipientName').value = isEdit ? newsletter.recipient.name : '';
       document.getElementById('newsletterRecipientEmail').value = isEdit ? newsletter.recipient.email : '';
+      document.getElementById('newsletterCC').value = isEdit ? (newsletter.cc || '') : 'christopherbennett92@gmail.com';
       document.getElementById('newsletterTime').value = isEdit ? cronToTime(newsletter.schedule.cron) : '09:00';
-      document.getElementById('newsletterTimezone').value = isEdit ? newsletter.schedule.timezone : 'UTC';
+      document.getElementById('newsletterTimezone').value = isEdit ? newsletter.schedule.timezone : 'Europe/Berlin';
       document.getElementById('newsletterLanguage').value = isEdit ? newsletter.language : 'English';
+      document.getElementById('newsletterLocation').value = isEdit ? (newsletter.location || 'München') : 'München';
+      
+      // Content toggles
+      const toggles = isEdit ? newsletter.contentToggles : { weather: true, newsGermany: true, newsWorld: true, newsCanada: false, autonomousDriving: false, joke: true, specialSections: [] };
+      document.getElementById('toggleWeather').checked = toggles.weather !== false;
+      document.getElementById('toggleNewsGermany').checked = toggles.newsGermany !== false;
+      document.getElementById('toggleNewsWorld').checked = toggles.newsWorld !== false;
+      document.getElementById('toggleNewsCanada').checked = toggles.newsCanada === true;
+      document.getElementById('toggleAutoDriving').checked = toggles.autonomousDriving === true;
+      document.getElementById('toggleJoke').checked = toggles.joke !== false;
+      document.getElementById('newsletterSpecialSections').value = (toggles.specialSections || []).join('\n');
+      
+      // Prompt
       document.getElementById('newsletterPrompt').value = isEdit ? newsletter.prompt : '';
+      
+      // If new, generate default prompt
+      if (!isEdit) {
+        regeneratePrompt();
+      }
       
       newsletterModal.classList.add('open');
     }
@@ -4877,17 +5759,31 @@
       const ampm = parseInt(hours) < 12 ? 'AM' : 'PM';
       const timeDisplay = `${hour12}:${minutes} ${ampm}`;
       
+      // Get content toggles
+      const contentToggles = {
+        weather: document.getElementById('toggleWeather').checked,
+        newsGermany: document.getElementById('toggleNewsGermany').checked,
+        newsWorld: document.getElementById('toggleNewsWorld').checked,
+        newsCanada: document.getElementById('toggleNewsCanada').checked,
+        autonomousDriving: document.getElementById('toggleAutoDriving').checked,
+        joke: document.getElementById('toggleJoke').checked,
+        specialSections: document.getElementById('newsletterSpecialSections').value.split('\n').filter(s => s.trim())
+      };
+      
       const data = {
         recipient: {
           name: document.getElementById('newsletterRecipientName').value,
           email: document.getElementById('newsletterRecipientEmail').value
         },
+        cc: document.getElementById('newsletterCC').value,
         schedule: {
           time: timeDisplay,
           timezone: timezone,
           cron: timeToCron(time)
         },
         language: document.getElementById('newsletterLanguage').value,
+        location: document.getElementById('newsletterLocation').value,
+        contentToggles: contentToggles,
         prompt: document.getElementById('newsletterPrompt').value,
         enabled: true
       };
