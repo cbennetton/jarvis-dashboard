@@ -6377,11 +6377,18 @@
       renderUsageBreakdown();
     }
 
+    // Helper to determine chart type based on time range
+    function getChartType() {
+      return usagePeriodDays === 1 ? 'bar' : 'line';
+    }
+
     function initUsageChart() {
       const ctx = document.getElementById('usageTimelineChart');
       if (!ctx) return;
 
       const isMobile = window.innerWidth < 768;
+      const chartType = getChartType();
+      const isBarChart = chartType === 'bar';
 
       const chartOpts = {
         responsive: true,
@@ -6392,6 +6399,7 @@
         },
         scales: {
           x: {
+            stacked: isBarChart,
             grid: {
               color: 'rgba(255,255,255,0.06)',
               drawBorder: false
@@ -6399,13 +6407,14 @@
             ticks: {
               color: 'rgba(255,255,255,0.5)',
               font: { size: isMobile ? 10 : 11 },
-              maxRotation: 45,
+              maxRotation: isBarChart ? 45 : 45,
               minRotation: 0,
               autoSkip: true,
               maxTicksLimit: isMobile ? 7 : 14
             }
           },
           y: {
+            stacked: isBarChart,
             beginAtZero: true,
             grid: {
               color: 'rgba(255,255,255,0.06)',
@@ -6433,8 +6442,8 @@
               color: 'rgba(255,255,255,0.7)',
               padding: isMobile ? 8 : 12,
               font: { size: isMobile ? 10 : 11 },
-              usePointStyle: true,
-              pointStyle: 'circle',
+              usePointStyle: !isBarChart,
+              pointStyle: isBarChart ? 'rect' : 'circle',
               boxWidth: isMobile ? 8 : 10
             }
           },
@@ -6461,25 +6470,41 @@
       };
 
       usageDistributionChart = new Chart(ctx, {
-        type: 'line',
+        type: chartType,
         data: { labels: [], datasets: [] },
         options: chartOpts
       });
     }
 
     function renderUsageChart() {
+      if (!usageData || !usageData.timeSeries) return;
+
+      const currentChartType = getChartType();
+      
+      // Check if we need to recreate the chart (type changed)
+      if (usageDistributionChart && usageDistributionChart.config.type !== currentChartType) {
+        usageDistributionChart.destroy();
+        usageDistributionChart = null;
+      }
+
       if (!usageDistributionChart) {
         initUsageChart();
       }
-      if (!usageDistributionChart || !usageData || !usageData.timeSeries) return;
+      if (!usageDistributionChart) return;
 
       // Get unique models from the data
       const models = filterInternalModels(usageData.models);
       const modelIds = models.map(([id]) => id);
       
-      // Format dates for X-axis labels (e.g., "Feb 1")
+      const isBarChart = currentChartType === 'bar';
+      
+      // Format dates for X-axis labels
       const labels = usageData.timeSeries.map(entry => {
         const date = new Date(entry.date);
+        if (isBarChart && usagePeriodDays === 1) {
+          // For today (hourly view), show hour labels
+          return date.toLocaleTimeString('en-US', { hour: 'numeric', hour12: false }) + ':00';
+        }
         return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
       });
 
@@ -6491,25 +6516,40 @@
           return usageViewMode === 'tokens' ? modelData.tokens : modelData.cost;
         });
 
-        return {
-          label: modelInfo.displayName,
-          data: data,
-          borderColor: modelInfo.color,
-          backgroundColor: modelInfo.color + '20',
-          fill: true,
-          tension: 0.4,
-          borderWidth: 2,
-          pointRadius: 0,
-          pointHoverRadius: 5,
-          pointHoverBackgroundColor: modelInfo.color,
-          pointHoverBorderColor: '#fff',
-          pointHoverBorderWidth: 2
-        };
+        if (isBarChart) {
+          // Bar chart styling
+          return {
+            label: modelInfo.displayName,
+            data: data,
+            backgroundColor: modelInfo.color,
+            borderColor: modelInfo.color,
+            borderWidth: 1,
+            borderRadius: 6,
+            barPercentage: 0.8,
+            categoryPercentage: 0.9
+          };
+        } else {
+          // Line chart styling
+          return {
+            label: modelInfo.displayName,
+            data: data,
+            borderColor: modelInfo.color,
+            backgroundColor: modelInfo.color + '20',
+            fill: true,
+            tension: 0.4,
+            borderWidth: 2,
+            pointRadius: 0,
+            pointHoverRadius: 5,
+            pointHoverBackgroundColor: modelInfo.color,
+            pointHoverBorderColor: '#fff',
+            pointHoverBorderWidth: 2
+          };
+        }
       });
 
       usageDistributionChart.data.labels = labels;
       usageDistributionChart.data.datasets = datasets;
-      usageDistributionChart.update('none');
+      usageDistributionChart.update('default'); // Use default animation for smoother transitions
     }
 
     function renderModelCards() {
@@ -6725,6 +6765,8 @@
       if (!ctx) return;
 
       const isMobile = window.innerWidth < 768;
+      const chartType = getChartType();
+      const isBarChart = chartType === 'bar';
 
       const chartOpts = {
         responsive: true,
@@ -6735,6 +6777,7 @@
         },
         scales: {
           x: {
+            stacked: isBarChart,
             grid: {
               color: 'rgba(255,255,255,0.06)',
               drawBorder: false
@@ -6742,13 +6785,14 @@
             ticks: {
               color: 'rgba(255,255,255,0.5)',
               font: { size: isMobile ? 10 : 11 },
-              maxRotation: 45,
+              maxRotation: isBarChart ? 45 : 45,
               minRotation: 0,
               autoSkip: true,
               maxTicksLimit: isMobile ? 7 : 14
             }
           },
           y: {
+            stacked: isBarChart,
             beginAtZero: true,
             grid: {
               color: 'rgba(255,255,255,0.06)',
@@ -6776,8 +6820,8 @@
               color: 'rgba(255,255,255,0.7)',
               padding: isMobile ? 8 : 12,
               font: { size: isMobile ? 10 : 11 },
-              usePointStyle: true,
-              pointStyle: 'circle',
+              usePointStyle: !isBarChart,
+              pointStyle: isBarChart ? 'rect' : 'circle',
               boxWidth: isMobile ? 8 : 10
             }
           },
@@ -6804,25 +6848,41 @@
       };
 
       taskTimelineChartInstance = new Chart(ctx, {
-        type: 'line',
+        type: chartType,
         data: { labels: [], datasets: [] },
         options: chartOpts
       });
     }
 
     function renderTaskTimelineChart() {
+      if (!taskUsageData || !taskUsageData.timeSeries) return;
+
+      const currentChartType = getChartType();
+      
+      // Check if we need to recreate the chart (type changed)
+      if (taskTimelineChartInstance && taskTimelineChartInstance.config.type !== currentChartType) {
+        taskTimelineChartInstance.destroy();
+        taskTimelineChartInstance = null;
+      }
+
       if (!taskTimelineChartInstance) {
         initTaskTimelineChart();
       }
-      if (!taskTimelineChartInstance || !taskUsageData || !taskUsageData.timeSeries) return;
+      if (!taskTimelineChartInstance) return;
 
       // Get unique tasks from the data
       const tasks = taskUsageData.tasks;
       const taskIds = tasks.map(t => t.id);
       
-      // Format dates for X-axis labels (e.g., "Feb 1")
+      const isBarChart = currentChartType === 'bar';
+      
+      // Format dates for X-axis labels
       const labels = taskUsageData.timeSeries.map(entry => {
         const date = new Date(entry.date);
+        if (isBarChart && usagePeriodDays === 1) {
+          // For today (hourly view), show hour labels
+          return date.toLocaleTimeString('en-US', { hour: 'numeric', hour12: false }) + ':00';
+        }
         return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
       });
 
@@ -6834,25 +6894,40 @@
           return taskViewMode === 'tokens' ? taskData.tokens : taskData.costEur;
         });
 
-        return {
-          label: `${task.emoji} ${task.name}`,
-          data: data,
-          borderColor: task.color,
-          backgroundColor: task.color + '20',
-          fill: true,
-          tension: 0.4,
-          borderWidth: 2,
-          pointRadius: 0,
-          pointHoverRadius: 5,
-          pointHoverBackgroundColor: task.color,
-          pointHoverBorderColor: '#fff',
-          pointHoverBorderWidth: 2
-        };
+        if (isBarChart) {
+          // Bar chart styling
+          return {
+            label: `${task.emoji} ${task.name}`,
+            data: data,
+            backgroundColor: task.color,
+            borderColor: task.color,
+            borderWidth: 1,
+            borderRadius: 6,
+            barPercentage: 0.8,
+            categoryPercentage: 0.9
+          };
+        } else {
+          // Line chart styling
+          return {
+            label: `${task.emoji} ${task.name}`,
+            data: data,
+            borderColor: task.color,
+            backgroundColor: task.color + '20',
+            fill: true,
+            tension: 0.4,
+            borderWidth: 2,
+            pointRadius: 0,
+            pointHoverRadius: 5,
+            pointHoverBackgroundColor: task.color,
+            pointHoverBorderColor: '#fff',
+            pointHoverBorderWidth: 2
+          };
+        }
       });
 
       taskTimelineChartInstance.data.labels = labels;
       taskTimelineChartInstance.data.datasets = datasets;
-      taskTimelineChartInstance.update('none');
+      taskTimelineChartInstance.update('default'); // Use default animation for smoother transitions
     }
 
     function renderTaskCards() {
