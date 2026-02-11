@@ -1954,7 +1954,268 @@
 
     .hidden { display: none !important; }
 
-    /* ==================== API USAGE PAGE ==================== */
+    /* ==================== API USAGE PAGE (UNIFIED) ==================== */
+    
+    /* Unified Control Panel */
+    .unified-controls-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 24px 28px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      flex-wrap: wrap;
+    }
+
+    .unified-controls-left {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex: 1;
+      min-width: 220px;
+    }
+
+    .unified-controls-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), #3b82f6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      flex-shrink: 0;
+    }
+
+    .unified-controls-info { flex: 1; min-width: 0; }
+    .unified-controls-value { font-size: 24px; font-weight: 700; margin-bottom: 2px; }
+    .unified-controls-meta { color: var(--text-secondary); font-size: 13px; }
+
+    .unified-controls-center {
+      display: flex;
+      gap: 28px;
+      padding: 0 24px;
+      border-left: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+    }
+
+    .unified-stat { text-align: center; }
+    .unified-stat-value {
+      font-size: 20px;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent), #3b82f6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .unified-stat-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+    }
+
+    .unified-controls-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    /* Time Range Control */
+    .unified-time-range {
+      display: flex;
+      background: var(--bg-secondary);
+      border-radius: 12px;
+      padding: 4px;
+      gap: 4px;
+      border: 1px solid var(--border);
+    }
+
+    .unified-time-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 8px 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.2s;
+      min-width: 50px;
+    }
+    .unified-time-btn:hover { color: var(--text-secondary); background: rgba(255,255,255,0.05); }
+    .unified-time-btn.active { background: var(--accent); color: white; }
+
+    /* Unified View Toggle */
+    .unified-view-toggle {
+      display: flex;
+      background: var(--bg-secondary);
+      border-radius: 12px;
+      padding: 4px;
+      gap: 4px;
+      border: 1px solid var(--border);
+    }
+
+    .unified-toggle-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 8px 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .unified-toggle-btn:hover { color: var(--text-secondary); background: rgba(255,255,255,0.05); }
+    .unified-toggle-btn.active { background: var(--accent); color: white; }
+
+    /* Unified Chart Cards */
+    .unified-chart-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px;
+      margin-bottom: 8px;
+    }
+
+    .unified-chart-header {
+      margin-bottom: 20px;
+    }
+
+    .unified-chart-title {
+      font-size: 18px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .unified-chart-subtitle {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .unified-chart-container {
+      height: 320px;
+      position: relative;
+    }
+
+    /* Expandable Details Sections */
+    .unified-details-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+
+    .unified-details-summary {
+      padding: 16px 20px;
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.2s;
+      list-style: none;
+    }
+
+    .unified-details-summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .unified-details-summary:hover {
+      background: rgba(255,255,255,0.03);
+    }
+
+    .unified-details-icon {
+      font-size: 20px;
+    }
+
+    .unified-details-title {
+      flex: 1;
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .unified-details-arrow {
+      font-size: 12px;
+      color: var(--text-muted);
+      transition: transform 0.2s;
+    }
+
+    .unified-details-section[open] .unified-details-arrow {
+      transform: rotate(180deg);
+    }
+
+    .unified-details-section[open] {
+      padding-bottom: 16px;
+    }
+
+    .unified-details-section .usage-models-grid,
+    .unified-details-section .task-usage-grid {
+      padding: 0 20px;
+    }
+
+    /* Mobile Responsive - Unified Controls */
+    @media (max-width: 768px) {
+      .unified-controls-card {
+        flex-direction: column;
+        gap: 20px;
+        padding: 20px;
+      }
+
+      .unified-controls-left {
+        width: 100%;
+        min-width: auto;
+      }
+
+      .unified-controls-center {
+        width: 100%;
+        padding: 16px 0 0 0;
+        border-left: none;
+        border-right: none;
+        border-top: 1px solid var(--border);
+        justify-content: center;
+      }
+
+      .unified-controls-right {
+        width: 100%;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .unified-time-range,
+      .unified-view-toggle {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .unified-time-btn,
+      .unified-toggle-btn {
+        flex: 1;
+        text-align: center;
+      }
+
+      .unified-chart-card {
+        padding: 16px;
+      }
+
+      .unified-chart-container {
+        height: 260px;
+      }
+    }
+    
+    /* Legacy period toggle (for compatibility) */
     .usage-period-toggle {
       display: flex;
       background: var(--bg-secondary);
@@ -4072,104 +4333,100 @@
       <div class="page" id="usagePage">
         <div class="page-header">
           <h1 class="page-title">📊 API Usage</h1>
-          <div class="page-header-actions">
-            <div class="usage-period-toggle">
-              <button class="period-btn active" data-days="7">7 days</button>
-              <button class="period-btn" data-days="30">30 days</button>
-              <button class="period-btn" data-days="90">90 days</button>
+          <button class="refresh-btn" id="refreshUsage">
+            <span class="refresh-icon">🔄</span> Refresh
+          </button>
+        </div>
+
+        <!-- Unified Control Panel -->
+        <div class="unified-controls-card">
+          <div class="unified-controls-left">
+            <div class="unified-controls-icon">📈</div>
+            <div class="unified-controls-info">
+              <div class="unified-controls-value" id="unifiedTotalValue">Loading...</div>
+              <div class="unified-controls-meta" id="unifiedTotalMeta">--</div>
             </div>
-            <button class="refresh-btn" id="refreshUsage">
-              <span class="refresh-icon">🔄</span> Refresh
-            </button>
+          </div>
+          
+          <div class="unified-controls-center">
+            <div class="unified-stat">
+              <div class="unified-stat-value" id="unifiedTotalCalls">0</div>
+              <div class="unified-stat-label">API Calls</div>
+            </div>
+            <div class="unified-stat">
+              <div class="unified-stat-value" id="unifiedSessions">0</div>
+              <div class="unified-stat-label">Sessions</div>
+            </div>
+          </div>
+
+          <div class="unified-controls-right">
+            <!-- Time Range Control -->
+            <div class="unified-time-range">
+              <button class="unified-time-btn" data-days="1">Today</button>
+              <button class="unified-time-btn active" data-days="7">7d</button>
+              <button class="unified-time-btn" data-days="30">30d</button>
+              <button class="unified-time-btn" data-days="90">90d</button>
+            </div>
+            
+            <!-- EUR/Token Toggle -->
+            <div class="unified-view-toggle">
+              <button class="unified-toggle-btn active" data-view="tokens">🔢 Tokens</button>
+              <button class="unified-toggle-btn" data-view="cost">💶 EUR</button>
+            </div>
           </div>
         </div>
 
-        <!-- Usage Summary Card -->
-        <div class="usage-summary-card">
-          <div class="usage-summary-left">
-            <div class="usage-summary-icon">📈</div>
-            <div class="usage-summary-info">
-              <div class="usage-summary-label">Total Usage</div>
-              <div class="usage-summary-value" id="usageTotalValue">Loading...</div>
-              <div class="usage-summary-meta" id="usageTotalMeta">--</div>
-            </div>
+        <!-- Model Usage Chart (Primary) -->
+        <div class="unified-chart-card">
+          <div class="unified-chart-header">
+            <div class="unified-chart-title">💎 Model Usage</div>
+            <div class="unified-chart-subtitle">Token/cost distribution by AI model over time</div>
           </div>
-          <div class="usage-summary-stats">
-            <div class="usage-summary-stat">
-              <div class="usage-summary-stat-value" id="usageTotalCalls">0</div>
-              <div class="usage-summary-stat-label">API Calls</div>
-            </div>
-            <div class="usage-summary-stat">
-              <div class="usage-summary-stat-value" id="usageSessionsCount">0</div>
-              <div class="usage-summary-stat-label">Sessions</div>
-            </div>
-          </div>
-          <div class="usage-view-toggle">
-            <button class="view-toggle-btn active" data-view="tokens">🔢 Tokens</button>
-            <button class="view-toggle-btn" data-view="cost">💶 Cost (€)</button>
-          </div>
-        </div>
-
-        <!-- Usage Over Time Chart -->
-        <div class="usage-chart-card">
-          <div class="usage-chart-header">
-            <div class="usage-chart-title">📈 Usage Over Time</div>
-          </div>
-          <div class="usage-chart-container" style="height: 280px;">
+          <div class="unified-chart-container">
             <canvas id="usageTimelineChart"></canvas>
           </div>
         </div>
 
-        <!-- Model Cards Grid -->
-        <div class="usage-models-grid" id="usageModelsGrid">
-          <div class="empty-state">
-            <div class="empty-state-icon">📊</div>
-            <p>Loading usage data...</p>
+        <!-- Task Usage Chart (Secondary) -->
+        <div class="unified-chart-card">
+          <div class="unified-chart-header">
+            <div class="unified-chart-title">🎯 Task Usage</div>
+            <div class="unified-chart-subtitle">Token/cost distribution by task type over time</div>
+          </div>
+          <div class="unified-chart-container">
+            <canvas id="taskTimelineChart"></canvas>
           </div>
         </div>
 
-        <!-- Usage Breakdown Card -->
-        <div class="usage-breakdown-card">
-          <div class="usage-breakdown-title">📋 Token Breakdown</div>
-          <div class="usage-breakdown-content" id="usageBreakdown">
+        <!-- Optional: Expandable Model Details -->
+        <details class="unified-details-section">
+          <summary class="unified-details-summary">
+            <span class="unified-details-icon">💎</span>
+            <span class="unified-details-title">Model Breakdown</span>
+            <span class="unified-details-arrow">▼</span>
+          </summary>
+          <div class="usage-models-grid" id="usageModelsGrid">
             <div class="empty-state">
-              <div class="empty-state-icon">⏳</div>
-              <p>Loading...</p>
+              <div class="empty-state-icon">📊</div>
+              <p>Loading usage data...</p>
             </div>
           </div>
-        </div>
+        </details>
 
-        <!-- Task Usage Section -->
-        <div class="task-usage-section">
-          <div class="task-usage-header">
-            <div>
-              <div class="task-usage-title">🎯 Task Cost Over Time</div>
-              <div class="task-usage-subtitle">See how each activity's cost evolves</div>
-            </div>
-          </div>
-
-          <!-- Task Time Series Chart -->
-          <div class="task-chart-card">
-            <div class="task-chart-header">
-              <div class="task-chart-title">📈 Cost by Task Type</div>
-              <div class="task-view-toggle">
-                <button class="task-view-toggle-btn active" data-view="tokens">🔢 Tokens</button>
-                <button class="task-view-toggle-btn" data-view="cost">💶 Cost (€)</button>
-              </div>
-            </div>
-            <div class="task-chart-container" style="height: 320px;">
-              <canvas id="taskTimelineChart"></canvas>
-            </div>
-          </div>
-
-          <!-- Task Cards Grid (with model breakdown) -->
+        <!-- Optional: Expandable Task Details -->
+        <details class="unified-details-section">
+          <summary class="unified-details-summary">
+            <span class="unified-details-icon">🎯</span>
+            <span class="unified-details-title">Task Breakdown</span>
+            <span class="unified-details-arrow">▼</span>
+          </summary>
           <div class="task-usage-grid" id="taskUsageGrid">
             <div class="empty-state">
               <div class="empty-state-icon">🎯</div>
               <p>Loading task data...</p>
             </div>
           </div>
-        </div>
+        </details>
       </div>
 
       <!-- Launch Pad Page -->
@@ -4546,7 +4803,10 @@
       if (pageName === 'skills') loadSkills();
       if (pageName === 'newsletters') loadNewsletters();
       if (pageName === 'launchpad') loadLaunchPad();
-      if (pageName === 'usage') loadUsage();
+      if (pageName === 'usage') {
+        loadUsage();
+        loadTaskUsage(); // Load both charts on the unified page
+      }
     }
 
     // ==================== CHARTS ====================
@@ -6069,22 +6329,43 @@
     function renderUsage() {
       if (!usageData) return;
 
-      // Update summary card
+      // Update unified control panel (new UI)
+      const unifiedValue = document.getElementById('unifiedTotalValue');
+      const unifiedMeta = document.getElementById('unifiedTotalMeta');
+      const unifiedCalls = document.getElementById('unifiedTotalCalls');
+      const unifiedSessions = document.getElementById('unifiedSessions');
+
+      if (unifiedValue && unifiedMeta) {
+        if (usageViewMode === 'tokens') {
+          unifiedValue.textContent = formatTokens(usageData.totals.tokens);
+          unifiedMeta.textContent = `€${usageData.totals.costEur.toFixed(2)} total cost`;
+        } else {
+          unifiedValue.textContent = `€${usageData.totals.costEur.toFixed(2)}`;
+          unifiedMeta.textContent = `${formatTokens(usageData.totals.tokens)} tokens`;
+        }
+        
+        unifiedCalls.textContent = usageData.totals.calls.toLocaleString();
+        unifiedSessions.textContent = usageData.sessionsProcessed.toLocaleString();
+      }
+
+      // Update legacy summary card (if present for compatibility)
       const totalValue = document.getElementById('usageTotalValue');
       const totalMeta = document.getElementById('usageTotalMeta');
       const totalCalls = document.getElementById('usageTotalCalls');
       const sessionsCount = document.getElementById('usageSessionsCount');
 
-      if (usageViewMode === 'tokens') {
-        totalValue.textContent = formatTokens(usageData.totals.tokens);
-        totalMeta.textContent = `€${usageData.totals.costEur.toFixed(2)} total cost`;
-      } else {
-        totalValue.textContent = `€${usageData.totals.costEur.toFixed(2)}`;
-        totalMeta.textContent = `${formatTokens(usageData.totals.tokens)} tokens`;
-      }
+      if (totalValue && totalMeta) {
+        if (usageViewMode === 'tokens') {
+          totalValue.textContent = formatTokens(usageData.totals.tokens);
+          totalMeta.textContent = `€${usageData.totals.costEur.toFixed(2)} total cost`;
+        } else {
+          totalValue.textContent = `€${usageData.totals.costEur.toFixed(2)}`;
+          totalMeta.textContent = `${formatTokens(usageData.totals.tokens)} tokens`;
+        }
 
-      totalCalls.textContent = usageData.totals.calls.toLocaleString();
-      sessionsCount.textContent = usageData.sessionsProcessed.toLocaleString();
+        if (totalCalls) totalCalls.textContent = usageData.totals.calls.toLocaleString();
+        if (sessionsCount) sessionsCount.textContent = usageData.sessionsProcessed.toLocaleString();
+      }
 
       // Render distribution chart
       renderUsageChart();
@@ -6361,7 +6642,33 @@
       return num.toLocaleString();
     }
 
-    // Period toggle
+    // Unified Time Range Control (syncs both charts)
+    document.querySelectorAll('.unified-time-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.unified-time-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        usagePeriodDays = parseInt(btn.dataset.days);
+        // Load both model usage AND task usage
+        loadUsage();
+        loadTaskUsage();
+      });
+    });
+
+    // Unified View Toggle (syncs both charts: EUR/Tokens)
+    document.querySelectorAll('.unified-toggle-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.unified-toggle-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        usageViewMode = btn.dataset.view;
+        taskViewMode = btn.dataset.view; // Sync task view mode
+        
+        // Update BOTH charts
+        renderUsage();
+        renderTaskUsage();
+      });
+    });
+
+    // Legacy Period toggle (for compatibility)
     document.querySelectorAll('.period-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
@@ -6371,22 +6678,25 @@
       });
     });
 
-    // View toggle - also updates chart
+    // Legacy View toggle (for compatibility)
     document.querySelectorAll('.view-toggle-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.view-toggle-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         usageViewMode = btn.dataset.view;
-        renderUsage(); // This now updates chart too
+        renderUsage();
       });
     });
 
-    document.getElementById('refreshUsage').addEventListener('click', () => loadUsage());
+    document.getElementById('refreshUsage').addEventListener('click', () => {
+      loadUsage();
+      loadTaskUsage(); // Also refresh task usage
+    });
 
     // ==================== TASK USAGE ====================
     let taskUsageData = null;
     let taskTimelineChartInstance = null;
-    let taskViewMode = 'tokens'; // 'tokens' or 'cost'
+    let taskViewMode = 'tokens'; // 'tokens' or 'cost' (synced with usageViewMode)
 
     async function loadTaskUsage() {
       try {
