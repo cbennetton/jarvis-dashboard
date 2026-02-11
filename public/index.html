@@ -2824,6 +2824,8 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 12px;
     }
 
     .task-chart-title {
@@ -2833,6 +2835,27 @@
       align-items: center;
       gap: 8px;
     }
+
+    .task-view-toggle {
+      display: flex;
+      background: var(--bg-secondary);
+      border-radius: 10px;
+      padding: 4px;
+    }
+
+    .task-view-toggle-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    .task-view-toggle-btn:hover { color: var(--text-secondary); }
+    .task-view-toggle-btn.active { background: var(--accent); color: white; }
 
     .task-chart-container {
       height: 300px;
@@ -4105,20 +4128,6 @@
           </div>
         </div>
 
-        <!-- Task-Based Cost Tracking -->
-        <div class="task-usage-section">
-          <div class="task-usage-header">
-            <h2 class="task-usage-title">💼 Cost by Task Type</h2>
-            <p class="task-usage-subtitle">See what each type of activity costs</p>
-          </div>
-          <div class="task-usage-grid" id="taskUsageGrid">
-            <div class="empty-state">
-              <div class="empty-state-icon">⏳</div>
-              <p>Loading task breakdown...</p>
-            </div>
-          </div>
-        </div>
-
         <!-- Usage Breakdown Card -->
         <div class="usage-breakdown-card">
           <div class="usage-breakdown-title">📋 Token Breakdown</div>
@@ -4134,47 +4143,31 @@
         <div class="task-usage-section">
           <div class="task-usage-header">
             <div>
-              <div class="task-usage-title">🎯 Cost by Task Type</div>
-              <div class="task-usage-subtitle">See what each activity costs</div>
+              <div class="task-usage-title">🎯 Task Cost Over Time</div>
+              <div class="task-usage-subtitle">See how each activity's cost evolves</div>
             </div>
           </div>
 
-          <!-- Task Chart -->
+          <!-- Task Time Series Chart -->
           <div class="task-chart-card">
             <div class="task-chart-header">
-              <div class="task-chart-title">📊 Task Cost Distribution</div>
+              <div class="task-chart-title">📈 Cost by Task Type</div>
+              <div class="task-view-toggle">
+                <button class="task-view-toggle-btn active" data-view="tokens">🔢 Tokens</button>
+                <button class="task-view-toggle-btn" data-view="cost">💶 Cost (€)</button>
+              </div>
             </div>
-            <div class="task-chart-container">
-              <canvas id="taskCostChart"></canvas>
+            <div class="task-chart-container" style="height: 320px;">
+              <canvas id="taskTimelineChart"></canvas>
             </div>
           </div>
 
-          <!-- Task Cards Grid -->
+          <!-- Task Cards Grid (with model breakdown) -->
           <div class="task-usage-grid" id="taskUsageGrid">
             <div class="empty-state">
               <div class="empty-state-icon">🎯</div>
               <p>Loading task data...</p>
             </div>
-          </div>
-
-          <!-- Task Table -->
-          <div class="task-table-card" id="taskTableCard">
-            <table class="task-table">
-              <thead>
-                <tr>
-                  <th>Task Type</th>
-                  <th>Runs</th>
-                  <th>Tokens</th>
-                  <th>Cost (€)</th>
-                  <th>Share</th>
-                </tr>
-              </thead>
-              <tbody id="taskTableBody">
-                <tr>
-                  <td colspan="5" style="text-align: center; color: var(--text-muted);">Loading...</td>
-                </tr>
-              </tbody>
-            </table>
           </div>
         </div>
       </div>
@@ -6392,7 +6385,8 @@
 
     // ==================== TASK USAGE ====================
     let taskUsageData = null;
-    let taskCostChartInstance = null;
+    let taskTimelineChartInstance = null;
+    let taskViewMode = 'tokens'; // 'tokens' or 'cost'
 
     async function loadTaskUsage() {
       try {
@@ -6409,108 +6403,146 @@
     function renderTaskUsage() {
       if (!taskUsageData || !taskUsageData.tasks) return;
 
-      // Render chart
-      renderTaskCostChart();
+      // Render time series chart
+      renderTaskTimelineChart();
       
-      // Render cards grid
+      // Render cards grid with model breakdown
       renderTaskCards();
-      
-      // Render table
-      renderTaskTable();
     }
 
-    function initTaskCostChart() {
-      const ctx = document.getElementById('taskCostChart');
+    function initTaskTimelineChart() {
+      const ctx = document.getElementById('taskTimelineChart');
       if (!ctx) return;
 
       const isMobile = window.innerWidth < 768;
 
-      taskCostChartInstance = new Chart(ctx, {
-        type: 'bar',
-        data: { labels: [], datasets: [] },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          indexAxis: 'y',
-          scales: {
-            x: {
-              beginAtZero: true,
-              grid: {
-                color: 'rgba(255,255,255,0.06)',
-                drawBorder: false
-              },
-              ticks: {
-                color: 'rgba(255,255,255,0.5)',
-                font: { size: isMobile ? 10 : 11 },
-                callback: function(value) {
+      const chartOpts = {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+          mode: 'index',
+          intersect: false
+        },
+        scales: {
+          x: {
+            grid: {
+              color: 'rgba(255,255,255,0.06)',
+              drawBorder: false
+            },
+            ticks: {
+              color: 'rgba(255,255,255,0.5)',
+              font: { size: isMobile ? 10 : 11 },
+              maxRotation: 45,
+              minRotation: 0,
+              autoSkip: true,
+              maxTicksLimit: isMobile ? 7 : 14
+            }
+          },
+          y: {
+            beginAtZero: true,
+            grid: {
+              color: 'rgba(255,255,255,0.06)',
+              drawBorder: false
+            },
+            ticks: {
+              color: 'rgba(255,255,255,0.5)',
+              font: { size: isMobile ? 10 : 11 },
+              callback: function(value) {
+                if (taskViewMode === 'tokens') {
+                  return formatTokensShort(value);
+                } else {
                   return '€' + value.toFixed(2);
                 }
               }
-            },
-            y: {
-              grid: {
-                display: false
-              },
-              ticks: {
-                color: 'rgba(255,255,255,0.7)',
-                font: { size: isMobile ? 11 : 12 }
-              }
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top',
+            align: 'end',
+            labels: {
+              color: 'rgba(255,255,255,0.7)',
+              padding: isMobile ? 8 : 12,
+              font: { size: isMobile ? 10 : 11 },
+              usePointStyle: true,
+              pointStyle: 'circle',
+              boxWidth: isMobile ? 8 : 10
             }
           },
-          plugins: {
-            legend: {
-              display: false
-            },
-            tooltip: {
-              backgroundColor: 'rgba(18, 18, 26, 0.95)',
-              titleColor: '#fff',
-              bodyColor: 'rgba(255,255,255,0.8)',
-              borderColor: 'rgba(255,255,255,0.1)',
-              borderWidth: 1,
-              cornerRadius: 8,
-              padding: 12,
-              callbacks: {
-                label: function(context) {
-                  const task = taskUsageData.tasks[context.dataIndex];
-                  return [
-                    `Cost: €${task.costEur.toFixed(2)}`,
-                    `Runs: ${task.runs}`,
-                    `Tokens: ${formatTokens(task.tokens)}`
-                  ];
+          tooltip: {
+            backgroundColor: 'rgba(18, 18, 26, 0.95)',
+            titleColor: '#fff',
+            bodyColor: 'rgba(255,255,255,0.8)',
+            borderColor: 'rgba(255,255,255,0.1)',
+            borderWidth: 1,
+            cornerRadius: 8,
+            padding: 12,
+            callbacks: {
+              label: function(context) {
+                const value = context.raw || 0;
+                if (taskViewMode === 'tokens') {
+                  return `${context.dataset.label}: ${formatTokens(value)}`;
+                } else {
+                  return `${context.dataset.label}: €${value.toFixed(4)}`;
                 }
               }
             }
           }
         }
+      };
+
+      taskTimelineChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: { labels: [], datasets: [] },
+        options: chartOpts
       });
     }
 
-    function renderTaskCostChart() {
-      if (!taskCostChartInstance) {
-        initTaskCostChart();
+    function renderTaskTimelineChart() {
+      if (!taskTimelineChartInstance) {
+        initTaskTimelineChart();
       }
-      if (!taskCostChartInstance || !taskUsageData) return;
+      if (!taskTimelineChartInstance || !taskUsageData || !taskUsageData.timeSeries) return;
 
-      // Sort by cost descending
-      const sortedTasks = [...taskUsageData.tasks].sort((a, b) => b.costEur - a.costEur);
+      // Get unique tasks from the data
+      const tasks = taskUsageData.tasks;
+      const taskIds = tasks.map(t => t.id);
       
-      // Take top 10 for readability
-      const topTasks = sortedTasks.slice(0, 10);
+      // Format dates for X-axis labels (e.g., "Feb 1")
+      const labels = taskUsageData.timeSeries.map(entry => {
+        const date = new Date(entry.date);
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      });
 
-      const labels = topTasks.map(t => `${t.emoji} ${t.name}`);
-      const data = topTasks.map(t => t.costEur);
-      const colors = topTasks.map(t => t.color);
+      // Create datasets for each task
+      const datasets = tasks.map(task => {
+        const data = taskUsageData.timeSeries.map(entry => {
+          const taskData = entry[task.id];
+          if (!taskData) return 0;
+          return taskViewMode === 'tokens' ? taskData.tokens : taskData.costEur;
+        });
 
-      taskCostChartInstance.data.labels = labels;
-      taskCostChartInstance.data.datasets = [{
-        data: data,
-        backgroundColor: colors,
-        borderColor: colors.map(c => c + '80'),
-        borderWidth: 1,
-        borderRadius: 6
-      }];
-      
-      taskCostChartInstance.update('none');
+        return {
+          label: `${task.emoji} ${task.name}`,
+          data: data,
+          borderColor: task.color,
+          backgroundColor: task.color + '20',
+          fill: true,
+          tension: 0.4,
+          borderWidth: 2,
+          pointRadius: 0,
+          pointHoverRadius: 5,
+          pointHoverBackgroundColor: task.color,
+          pointHoverBorderColor: '#fff',
+          pointHoverBorderWidth: 2
+        };
+      });
+
+      taskTimelineChartInstance.data.labels = labels;
+      taskTimelineChartInstance.data.datasets = datasets;
+      taskTimelineChartInstance.update('none');
     }
 
     function renderTaskCards() {
@@ -6528,7 +6560,9 @@
 
       grid.innerHTML = tasks.map(task => {
         const modelEntries = Object.entries(task.models || {});
-        const topModels = modelEntries.sort((a, b) => b[1].tokens - a[1].tokens).slice(0, 3);
+        const sortedModels = modelEntries.sort((a, b) => b[1].tokens - a[1].tokens);
+        const topModels = sortedModels.slice(0, 5);
+        const totalModelTokens = modelEntries.reduce((sum, [, data]) => sum + data.tokens, 0);
 
         return `
           <div class="task-usage-card" data-task="${esc(task.id)}" onclick="toggleTaskCard(this)" style="border-left: 3px solid ${task.color}">
@@ -6556,15 +6590,18 @@
             <div class="task-usage-expand-hint">Click to see model breakdown</div>
             <div class="task-usage-details">
               <div class="task-usage-models-breakdown">
-                ${topModels.map(([modelName, modelData]) => `
-                  <div class="task-usage-model-row">
-                    <div class="task-usage-model-emoji">🤖</div>
-                    <div class="task-usage-model-name">${esc(modelName)}</div>
-                    <div class="task-usage-model-tokens">${formatTokensShort(modelData.tokens)}</div>
-                    <div class="task-usage-model-cost">€${(modelData.cost * 0.92).toFixed(2)}</div>
-                  </div>
-                `).join('')}
-                ${modelEntries.length > 3 ? `<div style="text-align: center; color: var(--text-muted); font-size: 12px; margin-top: 8px;">+${modelEntries.length - 3} more models</div>` : ''}
+                ${topModels.map(([modelId, modelData]) => {
+                  const percentage = totalModelTokens > 0 ? (modelData.tokens / totalModelTokens * 100).toFixed(0) : 0;
+                  return `
+                    <div class="task-usage-model-row">
+                      <div class="task-usage-model-emoji">${modelData.emoji || '🤖'}</div>
+                      <div class="task-usage-model-name">${esc(modelData.displayName || modelId)}</div>
+                      <div class="task-usage-model-tokens">${formatTokensShort(modelData.tokens)} <span style="color: var(--text-muted); font-size: 11px;">(${percentage}%)</span></div>
+                      <div class="task-usage-model-cost">€${modelData.costEur.toFixed(2)}</div>
+                    </div>
+                  `;
+                }).join('')}
+                ${modelEntries.length > 5 ? `<div style="text-align: center; color: var(--text-muted); font-size: 12px; margin-top: 8px;">+${modelEntries.length - 5} more models</div>` : ''}
               </div>
               <button class="usage-model-collapse-btn" onclick="event.stopPropagation(); collapseTaskCard(this.closest('.task-usage-card'))">▲ Collapse</button>
             </div>
@@ -6582,37 +6619,15 @@
       card.classList.remove('expanded');
     }
 
-    function renderTaskTable() {
-      const tbody = document.getElementById('taskTableBody');
-      const tasks = [...taskUsageData.tasks].sort((a, b) => b.costEur - a.costEur);
-
-      if (!tasks.length) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No data</td></tr>';
-        return;
-      }
-
-      tbody.innerHTML = tasks.map(task => `
-        <tr>
-          <td>
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <span style="font-size: 20px;">${task.emoji}</span>
-              <span>${esc(task.name)}</span>
-            </div>
-          </td>
-          <td>${task.runs}</td>
-          <td>${formatTokens(task.tokens)}</td>
-          <td style="font-weight: 600; color: ${task.color}">€${task.costEur.toFixed(2)}</td>
-          <td>
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <div style="flex: 1; background: var(--bg-secondary); border-radius: 4px; height: 6px; overflow: hidden;">
-                <div style="width: ${task.costPercentage.toFixed(1)}%; height: 100%; background: ${task.color}; border-radius: 4px;"></div>
-              </div>
-              <span style="font-size: 12px; color: var(--text-muted); min-width: 45px;">${task.costPercentage.toFixed(1)}%</span>
-            </div>
-          </td>
-        </tr>
-      `).join('');
-    }
+    // Task view toggle - tokens vs cost
+    document.querySelectorAll('.task-view-toggle-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.task-view-toggle-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        taskViewMode = btn.dataset.view;
+        renderTaskTimelineChart(); // Re-render chart with new view mode
+      });
+    });
 
     // Modified loadUsage to also load task usage
     const originalLoadUsage = loadUsage;

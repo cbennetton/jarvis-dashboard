@@ -1074,6 +1074,60 @@ function parseSessionFileForTask(filePath) {
   return result;
 }
 
+// Helper function to build task time series
+function buildTaskTimeSeries(allTaskTimeSeriesData, days, usdToEur) {
+  const now = Date.now();
+  const dateTaskMap = {};
+  
+  // Group by date and task
+  for (const { timestamp, taskId, tokens, cost } of allTaskTimeSeriesData) {
+    const date = new Date(timestamp);
+    date.setHours(0, 0, 0, 0);
+    const dateStr = date.toISOString().split('T')[0];
+    
+    if (!dateTaskMap[dateStr]) {
+      dateTaskMap[dateStr] = {};
+    }
+    
+    if (!dateTaskMap[dateStr][taskId]) {
+      dateTaskMap[dateStr][taskId] = { tokens: 0, cost: 0 };
+    }
+    
+    dateTaskMap[dateStr][taskId].tokens += tokens;
+    dateTaskMap[dateStr][taskId].cost += cost;
+  }
+  
+  // Build array of dates in range
+  const dates = [];
+  const startDate = new Date(now - days * 24 * 60 * 60 * 1000);
+  startDate.setHours(0, 0, 0, 0);
+  const endDate = new Date(now);
+  endDate.setHours(0, 0, 0, 0);
+  
+  for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+    dates.push(d.toISOString().split('T')[0]);
+  }
+  
+  // Build time series array
+  const timeSeries = dates.map(date => {
+    const entry = { date };
+    const dayData = dateTaskMap[date] || {};
+    
+    // Add each task's data for this date
+    for (const [taskId, data] of Object.entries(dayData)) {
+      entry[taskId] = {
+        tokens: data.tokens,
+        cost: data.cost,
+        costEur: data.cost * usdToEur
+      };
+    }
+    
+    return entry;
+  });
+  
+  return timeSeries;
+}
+
 // GET /api/usage-by-task - Aggregate usage by task type
 app.get('/api/usage-by-task', requireAuth, (req, res) => {
   try {
@@ -1082,7 +1136,7 @@ app.get('/api/usage-by-task', requireAuth, (req, res) => {
     const usdToEur = 0.92;
     
     if (!fs.existsSync(SESSIONS_DIR)) {
-      return res.json({ tasks: {}, totals: { tokens: 0, cost: 0, runs: 0 }, period: days });
+      return res.json({ tasks: {}, totals: { tokens: 0, cost: 0, runs: 0 }, timeSeries: [], period: days });
     }
     
     // Load sessions.json for labels
@@ -1109,6 +1163,7 @@ app.get('/api/usage-by-task', requireAuth, (req, res) => {
     
     // Aggregate by task type
     const taskAggregates = {};
+    const allTaskTimeSeriesData = []; // For time series chart
     
     for (const file of files) {
       const parsed = parseSessionFileForTask(file.path);
@@ -1150,13 +1205,23 @@ app.get('/api/usage-by-task', requireAuth, (req, res) => {
       taskAggregates[taskId].costEur += parsed.cost * usdToEur;
       taskAggregates[taskId].calls += parsed.calls;
       
+      // Store for time series
+      const timestamp = parsed.timestamp || file.mtime;
+      allTaskTimeSeriesData.push({
+        timestamp,
+        taskId,
+        tokens: parsed.totalTokens,
+        cost: parsed.cost
+      });
+      
       // Aggregate model usage per task
       for (const [model, data] of Object.entries(parsed.models)) {
         if (!taskAggregates[taskId].models[model]) {
-          taskAggregates[taskId].models[model] = { tokens: 0, cost: 0, calls: 0 };
+          taskAggregates[taskId].models[model] = { tokens: 0, cost: 0, costEur: 0, calls: 0 };
         }
         taskAggregates[taskId].models[model].tokens += data.tokens;
         taskAggregates[taskId].models[model].cost += data.cost;
+        taskAggregates[taskId].models[model].costEur += data.cost * usdToEur;
         taskAggregates[taskId].models[model].calls += data.calls;
       }
       
@@ -1172,6 +1237,9 @@ app.get('/api/usage-by-task', requireAuth, (req, res) => {
       }
     }
     
+    // Build time series for chart
+    const timeSeries = buildTaskTimeSeries(allTaskTimeSeriesData, days, usdToEur);
+    
     // Calculate totals and percentages
     let totalTokens = 0;
     let totalCost = 0;
@@ -1183,10 +1251,18 @@ app.get('/api/usage-by-task', requireAuth, (req, res) => {
       totalRuns += task.runs;
     }
     
-    // Add percentages
+    // Add percentages and model info
     for (const task of Object.values(taskAggregates)) {
       task.tokenPercentage = totalTokens > 0 ? (task.tokens / totalTokens * 100) : 0;
       task.costPercentage = totalCost > 0 ? (task.cost / totalCost * 100) : 0;
+      
+      // Add model display info to each model in the task
+      for (const [modelId, modelData] of Object.entries(task.models)) {
+        const info = MODEL_INFO[modelId] || { emoji: '🤖', name: modelId, color: '#6b7280' };
+        modelData.displayName = info.name;
+        modelData.emoji = info.emoji;
+        modelData.color = info.color;
+      }
       
       // Sort sessions by most recent
       task.sessions.sort((a, b) => b.timestamp - a.timestamp);
@@ -1204,6 +1280,7 @@ app.get('/api/usage-by-task', requireAuth, (req, res) => {
         costEur: totalCost * usdToEur,
         runs: totalRuns
       },
+      timeSeries,
       taskTypes: TASK_PATTERNS.map(t => ({ id: t.id, name: t.name, emoji: t.emoji, color: t.color })),
       period: days,
       sessionsProcessed: files.length,
