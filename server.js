@@ -788,7 +788,16 @@ function buildTimeSeries(allTimeSeriesData, days) {
 app.get('/api/usage', requireAuth, (req, res) => {
   try {
     const days = parseInt(req.query.days) || 30;
-    const cutoffTime = Date.now() - (days * 24 * 60 * 60 * 1000);
+    
+    // For "Today" view (days=1), use start of current UTC day instead of last 24 hours
+    let cutoffTime;
+    if (days === 1) {
+      const now = new Date();
+      const startOfToday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0));
+      cutoffTime = startOfToday.getTime();
+    } else {
+      cutoffTime = Date.now() - (days * 24 * 60 * 60 * 1000);
+    }
     
     if (!fs.existsSync(SESSIONS_DIR)) {
       return res.json({ models: {}, totals: { tokens: 0, cost: 0, calls: 0 }, timeSeries: [], period: days });
@@ -1132,8 +1141,17 @@ function buildTaskTimeSeries(allTaskTimeSeriesData, days, usdToEur) {
 app.get('/api/usage-by-task', requireAuth, (req, res) => {
   try {
     const days = parseInt(req.query.days) || 30;
-    const cutoffTime = Date.now() - (days * 24 * 60 * 60 * 1000);
     const usdToEur = 0.92;
+    
+    // For "Today" view (days=1), use start of current UTC day instead of last 24 hours
+    let cutoffTime;
+    if (days === 1) {
+      const now = new Date();
+      const startOfToday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0));
+      cutoffTime = startOfToday.getTime();
+    } else {
+      cutoffTime = Date.now() - (days * 24 * 60 * 60 * 1000);
+    }
     
     if (!fs.existsSync(SESSIONS_DIR)) {
       return res.json({ tasks: {}, totals: { tokens: 0, cost: 0, runs: 0 }, timeSeries: [], period: days });

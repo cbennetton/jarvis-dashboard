@@ -6985,6 +6985,25 @@
       // Hide legend for Today view (X-axis already shows task names)
       taskTimelineChartInstance.options.plugins.legend.display = !isTodayView;
       
+      // Force Y-axis to update callback (ensure it re-evaluates taskViewMode)
+      taskTimelineChartInstance.options.scales.y.ticks.callback = function(value) {
+        if (taskViewMode === 'tokens') {
+          return formatTokensShort(value);
+        } else {
+          return '€' + value.toFixed(2);
+        }
+      };
+      
+      // Force tooltip to update callback
+      taskTimelineChartInstance.options.plugins.tooltip.callbacks.label = function(context) {
+        const value = context.raw || 0;
+        if (taskViewMode === 'tokens') {
+          return `${context.dataset.label}: ${formatTokens(value)}`;
+        } else {
+          return `${context.dataset.label}: €${value.toFixed(4)}`;
+        }
+      };
+      
       taskTimelineChartInstance.update('default'); // Use default animation for smoother transitions
     }
 
