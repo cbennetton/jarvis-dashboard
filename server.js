@@ -1717,45 +1717,22 @@ function parseRecentActivity(sessionFile, limit = 10) {
             : entry.ts;
         }
         
-        // Parse user messages (Christopher talking to Jarvis)
-        if (entry.type === 'message' && entry.message?.role === 'user') {
-          const content = entry.message.content;
-          let text = '';
-          if (Array.isArray(content)) {
-            text = content.find(c => c.type === 'text')?.text || '';
-          } else if (typeof content === 'string') {
-            text = content;
-          }
-          
-          // Clean up the message - remove Discord metadata, model names, etc.
-          text = text.trim();
-          
-          // Skip meta messages like "**using sonnet**"
-          if (text.startsWith('**using ') || text.startsWith('🧠 Using ') || text.startsWith('🐇 Using ')) {
-            continue;
-          }
-          
-          // Extract just the core message, removing Discord formatting
-          // Format: "Christopher: [message]" instead of full Discord metadata
-          if (text) {
-            const cleanText = smartTruncate(text, 45);
-            activities.push({
-              type: 'user_message',
-              description: `Christopher: "${cleanText}"`,
-              icon: '💬',
-              timestamp
-            });
-          }
-        }
+        // SKIP user messages - Christopher doesn't need to see what he said
+        // (User messages are filtered out from the activity feed)
         
-        // Parse tool calls
+        // Parse assistant activities
         if (entry.type === 'message' && entry.message?.role === 'assistant') {
           const content = entry.message.content;
           if (Array.isArray(content)) {
+            let hasToolCalls = false;
+            let assistantText = '';
+            
+            // First pass: check for tool calls and collect text
             for (const block of content) {
-              if (block.type === 'tool_use') {
+              if (block.type === 'tool_use' || block.type === 'toolCall') {
+                hasToolCalls = true;
                 const toolName = block.name || 'unknown';
-                const toolInput = block.input || {};
+                const toolInput = block.input || block.arguments || {};
                 
                 let description = toolName;
                 
@@ -1793,6 +1770,12 @@ function parseRecentActivity(sessionFile, limit = 10) {
                 } else if (toolName === 'sessions_spawn') {
                   const label = smartTruncate(toolInput.label || 'task', 30);
                   description = `Spawn: ${label}`;
+                } else if (toolName === 'sessions_list') {
+                  description = `List sessions`;
+                } else if (toolName === 'sessions_info') {
+                  description = `Check session info`;
+                } else if (toolName === 'sessions_send') {
+                  description = `Send to session`;
                 } else if (toolName === 'browser') {
                   const action = toolInput.action || 'action';
                   description = `Browser ${action}`;
@@ -1815,6 +1798,35 @@ function parseRecentActivity(sessionFile, limit = 10) {
                   tool: toolName,
                   description: smartTruncate(description, 45),
                   icon: TOOL_ICONS[toolName] || TOOL_ICONS.default,
+                  timestamp
+                });
+              } else if (block.type === 'text') {
+                // Collect text for potential summary
+                assistantText += block.text || '';
+              }
+            }
+            
+            // If assistant sent a text response WITHOUT tool calls, create a summary
+            if (!hasToolCalls && assistantText.trim()) {
+              // Skip meta messages (model selection announcements)
+              const text = assistantText.trim();
+              const isMetaMessage = text.match(/^🧠.*Using (Sonnet|Opus|Haiku)/i) || 
+                                    text.match(/^\*\*using (sonnet|opus|haiku)\*\*/i);
+              
+              if (!isMetaMessage) {
+                // Extract a brief topic from the response
+                const firstSentence = text.split(/[.!?]\s/)[0] || text;
+                let summary = smartTruncate(firstSentence, 40);
+                
+                // Create a more readable summary
+                if (summary.toLowerCase().startsWith('i ')) {
+                  summary = summary.substring(2); // Remove "I " prefix
+                }
+                
+                activities.push({
+                  type: 'assistant_response',
+                  description: `Replied: ${summary}`,
+                  icon: '💬',
                   timestamp
                 });
               }
