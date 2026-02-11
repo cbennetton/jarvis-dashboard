@@ -6399,7 +6399,7 @@
         },
         scales: {
           x: {
-            stacked: isBarChart,
+            stacked: false, // Side-by-side grouped bars for Today view
             grid: {
               color: 'rgba(255,255,255,0.06)',
               drawBorder: false
@@ -6414,7 +6414,7 @@
             }
           },
           y: {
-            stacked: isBarChart,
+            stacked: false, // Side-by-side grouped bars for Today view
             beginAtZero: true,
             grid: {
               color: 'rgba(255,255,255,0.06)',
@@ -6517,16 +6517,16 @@
         });
 
         if (isBarChart) {
-          // Bar chart styling
+          // Bar chart styling - grouped side-by-side bars
           return {
             label: modelInfo.displayName,
             data: data,
             backgroundColor: modelInfo.color,
             borderColor: modelInfo.color,
             borderWidth: 1,
-            borderRadius: 6,
-            barPercentage: 0.8,
-            categoryPercentage: 0.9
+            borderRadius: 4,
+            barPercentage: 0.9, // Width of each bar within its allocated space
+            categoryPercentage: 0.8 // Width of all bars per category (hour)
           };
         } else {
           // Line chart styling
@@ -6777,7 +6777,7 @@
         },
         scales: {
           x: {
-            stacked: isBarChart,
+            stacked: false, // Side-by-side grouped bars for Today view
             grid: {
               color: 'rgba(255,255,255,0.06)',
               drawBorder: false
@@ -6792,7 +6792,7 @@
             }
           },
           y: {
-            stacked: isBarChart,
+            stacked: false, // Side-by-side grouped bars for Today view
             beginAtZero: true,
             grid: {
               color: 'rgba(255,255,255,0.06)',
@@ -6895,16 +6895,16 @@
         });
 
         if (isBarChart) {
-          // Bar chart styling
+          // Bar chart styling - grouped side-by-side bars
           return {
             label: `${task.emoji} ${task.name}`,
             data: data,
             backgroundColor: task.color,
             borderColor: task.color,
             borderWidth: 1,
-            borderRadius: 6,
-            barPercentage: 0.8,
-            categoryPercentage: 0.9
+            borderRadius: 4,
+            barPercentage: 0.9, // Width of each bar within its allocated space
+            categoryPercentage: 0.8 // Width of all bars per category (hour)
           };
         } else {
           // Line chart styling
