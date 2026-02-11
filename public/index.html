@@ -6497,58 +6497,87 @@
       const modelIds = models.map(([id]) => id);
       
       const isBarChart = currentChartType === 'bar';
+      const isTodayView = usagePeriodDays === 1;
       
-      // Format dates for X-axis labels
-      const labels = usageData.timeSeries.map(entry => {
-        const date = new Date(entry.date);
-        if (isBarChart && usagePeriodDays === 1) {
-          // For today (hourly view), show hour labels
-          return date.toLocaleTimeString('en-US', { hour: 'numeric', hour12: false }) + ':00';
-        }
-        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-      });
-
-      // Create datasets for each model
-      const datasets = models.map(([modelId, modelInfo]) => {
-        const data = usageData.timeSeries.map(entry => {
-          const modelData = entry[modelId];
-          if (!modelData) return 0;
-          return usageViewMode === 'tokens' ? modelData.tokens : modelData.cost;
+      let labels, datasets;
+      
+      if (isTodayView && isBarChart) {
+        // TODAY VIEW: Show aggregated totals per model (not hourly breakdown)
+        // X-axis = model names, Y-axis = total tokens/EUR for the day
+        labels = models.map(([modelId, modelInfo]) => modelInfo.displayName);
+        
+        // Single dataset with all model totals, each bar gets its model's color
+        const data = models.map(([modelId, modelInfo]) => {
+          return usageViewMode === 'tokens' ? modelInfo.totalTokens : modelInfo.costEur;
+        });
+        
+        const backgroundColors = models.map(([modelId, modelInfo]) => modelInfo.color);
+        const borderColors = models.map(([modelId, modelInfo]) => modelInfo.color);
+        
+        datasets = [{
+          label: usageViewMode === 'tokens' ? 'Total Tokens' : 'Total Cost (EUR)',
+          data: data,
+          backgroundColor: backgroundColors,
+          borderColor: borderColors,
+          borderWidth: 1,
+          borderRadius: 6,
+          barPercentage: 0.7,
+          categoryPercentage: 0.8
+        }];
+      } else {
+        // MULTI-DAY VIEW: Show time series (line chart or grouped bars)
+        // Format dates for X-axis labels
+        labels = usageData.timeSeries.map(entry => {
+          const date = new Date(entry.date);
+          return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
         });
 
-        if (isBarChart) {
-          // Bar chart styling - grouped side-by-side bars
-          return {
-            label: modelInfo.displayName,
-            data: data,
-            backgroundColor: modelInfo.color,
-            borderColor: modelInfo.color,
-            borderWidth: 1,
-            borderRadius: 4,
-            barPercentage: 0.9, // Width of each bar within its allocated space
-            categoryPercentage: 0.8 // Width of all bars per category (hour)
-          };
-        } else {
-          // Line chart styling
-          return {
-            label: modelInfo.displayName,
-            data: data,
-            borderColor: modelInfo.color,
-            backgroundColor: modelInfo.color + '20',
-            fill: true,
-            tension: 0.4,
-            borderWidth: 2,
-            pointRadius: 0,
-            pointHoverRadius: 5,
-            pointHoverBackgroundColor: modelInfo.color,
-            pointHoverBorderColor: '#fff',
-            pointHoverBorderWidth: 2
-          };
-        }
-      });
+        // Create datasets for each model
+        datasets = models.map(([modelId, modelInfo]) => {
+          const data = usageData.timeSeries.map(entry => {
+            const modelData = entry[modelId];
+            if (!modelData) return 0;
+            return usageViewMode === 'tokens' ? modelData.tokens : modelData.cost;
+          });
+
+          if (isBarChart) {
+            // Bar chart styling - grouped side-by-side bars
+            return {
+              label: modelInfo.displayName,
+              data: data,
+              backgroundColor: modelInfo.color,
+              borderColor: modelInfo.color,
+              borderWidth: 1,
+              borderRadius: 4,
+              barPercentage: 0.9,
+              categoryPercentage: 0.8
+            };
+          } else {
+            // Line chart styling
+            return {
+              label: modelInfo.displayName,
+              data: data,
+              borderColor: modelInfo.color,
+              backgroundColor: modelInfo.color + '20',
+              fill: true,
+              tension: 0.4,
+              borderWidth: 2,
+              pointRadius: 0,
+              pointHoverRadius: 5,
+              pointHoverBackgroundColor: modelInfo.color,
+              pointHoverBorderColor: '#fff',
+              pointHoverBorderWidth: 2
+            };
+          }
+        });
+      }
 
       usageDistributionChart.data.labels = labels;
       usageDistributionChart.data.datasets = datasets;
+      
+      // Hide legend for Today view (X-axis already shows model names)
+      usageDistributionChart.options.plugins.legend.display = !isTodayView;
+      
       usageDistributionChart.update('default'); // Use default animation for smoother transitions
     }
 
@@ -6875,58 +6904,87 @@
       const taskIds = tasks.map(t => t.id);
       
       const isBarChart = currentChartType === 'bar';
+      const isTodayView = usagePeriodDays === 1;
       
-      // Format dates for X-axis labels
-      const labels = taskUsageData.timeSeries.map(entry => {
-        const date = new Date(entry.date);
-        if (isBarChart && usagePeriodDays === 1) {
-          // For today (hourly view), show hour labels
-          return date.toLocaleTimeString('en-US', { hour: 'numeric', hour12: false }) + ':00';
-        }
-        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-      });
-
-      // Create datasets for each task
-      const datasets = tasks.map(task => {
-        const data = taskUsageData.timeSeries.map(entry => {
-          const taskData = entry[task.id];
-          if (!taskData) return 0;
-          return taskViewMode === 'tokens' ? taskData.tokens : taskData.costEur;
+      let labels, datasets;
+      
+      if (isTodayView && isBarChart) {
+        // TODAY VIEW: Show aggregated totals per task (not hourly breakdown)
+        // X-axis = task names, Y-axis = total tokens/EUR for the day
+        labels = tasks.map(task => `${task.emoji} ${task.name}`);
+        
+        // Single dataset with all task totals, each bar gets its task's color
+        const data = tasks.map(task => {
+          return taskViewMode === 'tokens' ? task.tokens : task.costEur;
+        });
+        
+        const backgroundColors = tasks.map(task => task.color);
+        const borderColors = tasks.map(task => task.color);
+        
+        datasets = [{
+          label: taskViewMode === 'tokens' ? 'Total Tokens' : 'Total Cost (EUR)',
+          data: data,
+          backgroundColor: backgroundColors,
+          borderColor: borderColors,
+          borderWidth: 1,
+          borderRadius: 6,
+          barPercentage: 0.7,
+          categoryPercentage: 0.8
+        }];
+      } else {
+        // MULTI-DAY VIEW: Show time series (line chart)
+        // Format dates for X-axis labels
+        labels = taskUsageData.timeSeries.map(entry => {
+          const date = new Date(entry.date);
+          return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
         });
 
-        if (isBarChart) {
-          // Bar chart styling - grouped side-by-side bars
-          return {
-            label: `${task.emoji} ${task.name}`,
-            data: data,
-            backgroundColor: task.color,
-            borderColor: task.color,
-            borderWidth: 1,
-            borderRadius: 4,
-            barPercentage: 0.9, // Width of each bar within its allocated space
-            categoryPercentage: 0.8 // Width of all bars per category (hour)
-          };
-        } else {
-          // Line chart styling
-          return {
-            label: `${task.emoji} ${task.name}`,
-            data: data,
-            borderColor: task.color,
-            backgroundColor: task.color + '20',
-            fill: true,
-            tension: 0.4,
-            borderWidth: 2,
-            pointRadius: 0,
-            pointHoverRadius: 5,
-            pointHoverBackgroundColor: task.color,
-            pointHoverBorderColor: '#fff',
-            pointHoverBorderWidth: 2
-          };
-        }
-      });
+        // Create datasets for each task
+        datasets = tasks.map(task => {
+          const data = taskUsageData.timeSeries.map(entry => {
+            const taskData = entry[task.id];
+            if (!taskData) return 0;
+            return taskViewMode === 'tokens' ? taskData.tokens : taskData.costEur;
+          });
+
+          if (isBarChart) {
+            // Bar chart styling - grouped side-by-side bars
+            return {
+              label: `${task.emoji} ${task.name}`,
+              data: data,
+              backgroundColor: task.color,
+              borderColor: task.color,
+              borderWidth: 1,
+              borderRadius: 4,
+              barPercentage: 0.9,
+              categoryPercentage: 0.8
+            };
+          } else {
+            // Line chart styling
+            return {
+              label: `${task.emoji} ${task.name}`,
+              data: data,
+              borderColor: task.color,
+              backgroundColor: task.color + '20',
+              fill: true,
+              tension: 0.4,
+              borderWidth: 2,
+              pointRadius: 0,
+              pointHoverRadius: 5,
+              pointHoverBackgroundColor: task.color,
+              pointHoverBorderColor: '#fff',
+              pointHoverBorderWidth: 2
+            };
+          }
+        });
+      }
 
       taskTimelineChartInstance.data.labels = labels;
       taskTimelineChartInstance.data.datasets = datasets;
+      
+      // Hide legend for Today view (X-axis already shows task names)
+      taskTimelineChartInstance.options.plugins.legend.display = !isTodayView;
+      
       taskTimelineChartInstance.update('default'); // Use default animation for smoother transitions
     }
 
