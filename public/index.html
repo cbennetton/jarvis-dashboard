@@ -5844,7 +5844,13 @@
         if (isGerman) {
           prompt += '; wenn bemerkenswertes Wetter in 1-2 Wochen, kurz erwähnen';
         }
-        prompt += ').\n';
+        prompt += '). ';
+        if (isGerman) {
+          prompt += `Füge KURZEN Kleidungs-/Schuh-Tipp hinzu basierend auf Wetter (z.B., 'Dicke Jacke empfohlen' bei <5°C, 'Stiefel bei Matsch' wenn regnerisch).`;
+        } else {
+          prompt += `Add SHORT clothing/shoe tip based on weather (e.g., 'Thick jacket recommended' if <5°C, 'Boots recommended' if rainy).`;
+        }
+        prompt += '\n';
       }
       
       // News sections

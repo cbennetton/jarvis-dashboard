@@ -8,3 +8,4 @@ chats.json
 pending-chats.json
 package-lock.json
 server.log
+*.backup
