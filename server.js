@@ -1664,6 +1664,30 @@ function getMainAgentSessionFile() {
   }
 }
 
+function cleanFilePath(filePath) {
+  if (!filePath) return 'file';
+  
+  // Remove common prefixes to show just the important part
+  const cleaned = filePath
+    .replace(/^\/home\/ubuntu\/.openclaw\/workspace\//, '')
+    .replace(/^~\/\.openclaw\/workspace\//, '')
+    .replace(/^\.\//, '')
+    .replace(/^\//, '');
+  
+  // For really long paths, just show the filename
+  if (cleaned.length > 40) {
+    const parts = cleaned.split('/');
+    return parts[parts.length - 1];
+  }
+  
+  return cleaned;
+}
+
+function smartTruncate(text, maxLen = 45) {
+  if (!text || text.length <= maxLen) return text;
+  return text.slice(0, maxLen - 3) + '...';
+}
+
 function parseRecentActivity(sessionFile, limit = 10) {
   const activities = [];
   
@@ -1703,10 +1727,21 @@ function parseRecentActivity(sessionFile, limit = 10) {
             text = content;
           }
           
-          if (text.trim()) {
+          // Clean up the message - remove Discord metadata, model names, etc.
+          text = text.trim();
+          
+          // Skip meta messages like "**using sonnet**"
+          if (text.startsWith('**using ') || text.startsWith('🧠 Using ') || text.startsWith('🐇 Using ')) {
+            continue;
+          }
+          
+          // Extract just the core message, removing Discord formatting
+          // Format: "Christopher: [message]" instead of full Discord metadata
+          if (text) {
+            const cleanText = smartTruncate(text, 45);
             activities.push({
               type: 'user_message',
-              description: text.slice(0, 100) + (text.length > 100 ? '...' : ''),
+              description: `Christopher: "${cleanText}"`,
               icon: '💬',
               timestamp
             });
@@ -1724,35 +1759,61 @@ function parseRecentActivity(sessionFile, limit = 10) {
                 
                 let description = toolName;
                 
-                // Customize description based on tool
+                // Customize description based on tool - keep it SHORT and READABLE
                 if (toolName === 'read') {
-                  description = `Reading ${toolInput.path || toolInput.file_path || 'file'}`;
+                  const file = cleanFilePath(toolInput.path || toolInput.file_path);
+                  description = `Read ${file}`;
                 } else if (toolName === 'write') {
-                  description = `Writing ${toolInput.path || toolInput.file_path || 'file'}`;
+                  const file = cleanFilePath(toolInput.path || toolInput.file_path);
+                  description = `Write ${file}`;
                 } else if (toolName === 'edit') {
-                  description = `Editing ${toolInput.path || toolInput.file_path || 'file'}`;
+                  const file = cleanFilePath(toolInput.path || toolInput.file_path);
+                  description = `Edit ${file}`;
                 } else if (toolName === 'exec') {
                   const cmd = (toolInput.command || '').split(' ')[0];
-                  description = `Running: ${cmd}`;
+                  description = `Run ${cmd}`;
                 } else if (toolName === 'web_search') {
-                  description = `Searching: ${(toolInput.query || '').slice(0, 40)}`;
+                  const query = smartTruncate(toolInput.query || '', 30);
+                  description = `Search: ${query}`;
                 } else if (toolName === 'web_fetch') {
-                  description = `Fetching: ${toolInput.url || 'webpage'}`;
+                  // Extract domain from URL
+                  let domain = toolInput.url || 'webpage';
+                  try {
+                    const url = new URL(toolInput.url);
+                    domain = url.hostname.replace('www.', '');
+                  } catch (e) {}
+                  description = `Fetch ${domain}`;
                 } else if (toolName === 'message') {
                   const action = toolInput.action || '';
-                  description = `Message: ${action}`;
+                  if (action === 'send') {
+                    description = `Send message`;
+                  } else {
+                    description = `Message: ${action}`;
+                  }
                 } else if (toolName === 'sessions_spawn') {
-                  description = `Spawning subagent: ${toolInput.label || 'task'}`;
+                  const label = smartTruncate(toolInput.label || 'task', 30);
+                  description = `Spawn: ${label}`;
                 } else if (toolName === 'browser') {
-                  description = `Browser: ${toolInput.action || 'action'}`;
+                  const action = toolInput.action || 'action';
+                  description = `Browser ${action}`;
                 } else if (toolName === 'tts') {
-                  description = `Speaking: ${(toolInput.text || '').slice(0, 40)}`;
+                  description = `Speak`;
+                } else if (toolName === 'nodes') {
+                  const action = toolInput.action || 'action';
+                  description = `Node ${action}`;
+                } else if (toolName === 'canvas') {
+                  const action = toolInput.action || 'action';
+                  description = `Canvas ${action}`;
+                } else if (toolName === 'image') {
+                  description = `Analyze image`;
+                } else if (toolName === 'voice_call') {
+                  description = `Voice call`;
                 }
                 
                 activities.push({
                   type: 'tool_call',
                   tool: toolName,
-                  description,
+                  description: smartTruncate(description, 45),
                   icon: TOOL_ICONS[toolName] || TOOL_ICONS.default,
                   timestamp
                 });
@@ -1761,21 +1822,8 @@ function parseRecentActivity(sessionFile, limit = 10) {
           }
         }
         
-        // Parse assistant responses (text only, to track conversation flow)
-        if (entry.type === 'message' && entry.message?.role === 'assistant') {
-          const content = entry.message.content;
-          if (Array.isArray(content)) {
-            const textBlock = content.find(c => c.type === 'text');
-            if (textBlock?.text && textBlock.text.trim()) {
-              activities.push({
-                type: 'assistant_response',
-                description: textBlock.text.slice(0, 100) + (textBlock.text.length > 100 ? '...' : ''),
-                icon: '🦊',
-                timestamp
-              });
-            }
-          }
-        }
+        // Skip assistant text responses - they're usually too verbose for activity feed
+        // We only care about what actions were taken, not the explanations
         
       } catch (e) {
         // Skip malformed lines
