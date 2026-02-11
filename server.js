@@ -1526,6 +1526,218 @@ app.get('/api/subagents', requireAuth, (req, res) => {
 
 // ==================== END SUBAGENT STATUS API ====================
 
+// ==================== MAIN AGENT ACTIVITY API ====================
+// Parses recent main agent session to show real-time activity
+
+const TOOL_ICONS = {
+  read: '📄',
+  write: '✍️',
+  edit: '✏️',
+  exec: '⚙️',
+  web_search: '🔍',
+  web_fetch: '🌐',
+  browser: '🌐',
+  message: '💬',
+  tts: '🔊',
+  nodes: '📱',
+  canvas: '🖼️',
+  sessions_spawn: '🤖',
+  image: '🖼️',
+  voice_call: '📞',
+  default: '🔧'
+};
+
+function getMainAgentSessionFile() {
+  // Find the most recent main agent session file (not subagent)
+  const sessionsFile = path.join(SESSIONS_DIR, 'sessions.json');
+  if (!fs.existsSync(sessionsFile)) return null;
+  
+  try {
+    const sessionsData = JSON.parse(fs.readFileSync(sessionsFile, 'utf8'));
+    
+    // Find main agent session (discord channel)
+    for (const [sessionKey, sessionData] of Object.entries(sessionsData)) {
+      // Main agent is usually discord:channel:XXX
+      if (sessionKey.includes('discord:channel:') && !sessionKey.includes(':subagent:')) {
+        const sessionFile = path.join(SESSIONS_DIR, `${sessionData.sessionId}.jsonl`);
+        if (fs.existsSync(sessionFile)) {
+          return sessionFile;
+        }
+      }
+    }
+    
+    // Fallback: newest non-subagent session
+    let newestSession = null;
+    let newestTime = 0;
+    for (const [sessionKey, sessionData] of Object.entries(sessionsData)) {
+      if (sessionKey.includes(':subagent:')) continue;
+      const sessionFile = path.join(SESSIONS_DIR, `${sessionData.sessionId}.jsonl`);
+      if (fs.existsSync(sessionFile)) {
+        const mtime = fs.statSync(sessionFile).mtimeMs;
+        if (mtime > newestTime) {
+          newestTime = mtime;
+          newestSession = sessionFile;
+        }
+      }
+    }
+    return newestSession;
+  } catch (e) {
+    console.error('Error finding main agent session:', e);
+    return null;
+  }
+}
+
+function parseRecentActivity(sessionFile, limit = 10) {
+  const activities = [];
+  
+  try {
+    const content = fs.readFileSync(sessionFile, 'utf8');
+    const lines = content.split('\n').filter(line => line.trim());
+    
+    // Read recent lines (last 200 to ensure we get enough activities)
+    const recentLines = lines.slice(-200);
+    
+    for (const line of recentLines) {
+      try {
+        const entry = JSON.parse(line);
+        
+        // Skip session metadata
+        if (entry.type === 'session') continue;
+        
+        // Extract timestamp
+        let timestamp = Date.now();
+        if (entry.timestamp) {
+          timestamp = typeof entry.timestamp === 'string' 
+            ? new Date(entry.timestamp).getTime() 
+            : entry.timestamp;
+        } else if (entry.ts) {
+          timestamp = typeof entry.ts === 'string' 
+            ? new Date(entry.ts).getTime() 
+            : entry.ts;
+        }
+        
+        // Parse user messages (Christopher talking to Jarvis)
+        if (entry.type === 'message' && entry.message?.role === 'user') {
+          const content = entry.message.content;
+          let text = '';
+          if (Array.isArray(content)) {
+            text = content.find(c => c.type === 'text')?.text || '';
+          } else if (typeof content === 'string') {
+            text = content;
+          }
+          
+          if (text.trim()) {
+            activities.push({
+              type: 'user_message',
+              description: text.slice(0, 100) + (text.length > 100 ? '...' : ''),
+              icon: '💬',
+              timestamp
+            });
+          }
+        }
+        
+        // Parse tool calls
+        if (entry.type === 'message' && entry.message?.role === 'assistant') {
+          const content = entry.message.content;
+          if (Array.isArray(content)) {
+            for (const block of content) {
+              if (block.type === 'tool_use') {
+                const toolName = block.name || 'unknown';
+                const toolInput = block.input || {};
+                
+                let description = toolName;
+                
+                // Customize description based on tool
+                if (toolName === 'read') {
+                  description = `Reading ${toolInput.path || toolInput.file_path || 'file'}`;
+                } else if (toolName === 'write') {
+                  description = `Writing ${toolInput.path || toolInput.file_path || 'file'}`;
+                } else if (toolName === 'edit') {
+                  description = `Editing ${toolInput.path || toolInput.file_path || 'file'}`;
+                } else if (toolName === 'exec') {
+                  const cmd = (toolInput.command || '').split(' ')[0];
+                  description = `Running: ${cmd}`;
+                } else if (toolName === 'web_search') {
+                  description = `Searching: ${(toolInput.query || '').slice(0, 40)}`;
+                } else if (toolName === 'web_fetch') {
+                  description = `Fetching: ${toolInput.url || 'webpage'}`;
+                } else if (toolName === 'message') {
+                  const action = toolInput.action || '';
+                  description = `Message: ${action}`;
+                } else if (toolName === 'sessions_spawn') {
+                  description = `Spawning subagent: ${toolInput.label || 'task'}`;
+                } else if (toolName === 'browser') {
+                  description = `Browser: ${toolInput.action || 'action'}`;
+                } else if (toolName === 'tts') {
+                  description = `Speaking: ${(toolInput.text || '').slice(0, 40)}`;
+                }
+                
+                activities.push({
+                  type: 'tool_call',
+                  tool: toolName,
+                  description,
+                  icon: TOOL_ICONS[toolName] || TOOL_ICONS.default,
+                  timestamp
+                });
+              }
+            }
+          }
+        }
+        
+        // Parse assistant responses (text only, to track conversation flow)
+        if (entry.type === 'message' && entry.message?.role === 'assistant') {
+          const content = entry.message.content;
+          if (Array.isArray(content)) {
+            const textBlock = content.find(c => c.type === 'text');
+            if (textBlock?.text && textBlock.text.trim()) {
+              activities.push({
+                type: 'assistant_response',
+                description: textBlock.text.slice(0, 100) + (textBlock.text.length > 100 ? '...' : ''),
+                icon: '🦊',
+                timestamp
+              });
+            }
+          }
+        }
+        
+      } catch (e) {
+        // Skip malformed lines
+      }
+    }
+  } catch (e) {
+    console.error('Error parsing activity:', e);
+  }
+  
+  // Sort by timestamp (newest first) and return limited set
+  return activities
+    .sort((a, b) => b.timestamp - a.timestamp)
+    .slice(0, limit);
+}
+
+app.get('/api/main-agent-activity', requireAuth, (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 10;
+    const sessionFile = getMainAgentSessionFile();
+    
+    if (!sessionFile) {
+      return res.json({ activities: [], timestamp: Date.now() });
+    }
+    
+    const activities = parseRecentActivity(sessionFile, limit);
+    
+    res.json({
+      activities,
+      count: activities.length,
+      timestamp: Date.now()
+    });
+  } catch (e) {
+    console.error('Main agent activity API error:', e);
+    res.status(500).json({ error: 'Failed to get main agent activity', activities: [] });
+  }
+});
+
+// ==================== END MAIN AGENT ACTIVITY API ====================
+
 // Static files AFTER API routes
 app.use(express.static(path.join(__dirname, 'public')));
 

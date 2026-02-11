@@ -608,6 +608,144 @@
       opacity: 0.5;
     }
 
+    /* Main Agent Activity Feed */
+    .main-agent-activity-feed {
+      padding: 16px 20px;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      margin-top: 16px;
+    }
+
+    .activity-feed-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .activity-feed-title {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 600;
+    }
+
+    .activity-feed-refresh {
+      color: var(--text-muted);
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .activity-feed-refresh:hover {
+      color: var(--accent);
+      transform: rotate(90deg);
+    }
+
+    .activity-feed-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .activity-feed-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 10px 12px;
+      background: var(--bg-secondary);
+      border-radius: 10px;
+      transition: all 0.2s ease;
+      border-left: 3px solid transparent;
+    }
+
+    .activity-feed-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+      transform: translateX(2px);
+    }
+
+    .activity-feed-item.type-user_message {
+      border-left-color: #3b82f6;
+    }
+
+    .activity-feed-item.type-tool_call {
+      border-left-color: var(--accent);
+    }
+
+    .activity-feed-item.type-assistant_response {
+      border-left-color: #8b5cf6;
+    }
+
+    .activity-feed-icon {
+      font-size: 18px;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+
+    .activity-feed-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .activity-feed-description {
+      font-size: 13px;
+      color: var(--text-primary);
+      line-height: 1.4;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      margin-bottom: 2px;
+    }
+
+    .activity-feed-time {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .activity-feed-empty {
+      text-align: center;
+      padding: 20px;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    .activity-feed-empty-icon {
+      font-size: 24px;
+      margin-bottom: 8px;
+      opacity: 0.5;
+    }
+
+    /* Responsive activity feed */
+    @media (max-width: 768px) {
+      .main-agent-activity-feed {
+        padding: 12px 14px;
+      }
+
+      .activity-feed-list {
+        max-height: 200px;
+      }
+
+      .activity-feed-item {
+        padding: 8px 10px;
+        gap: 10px;
+      }
+
+      .activity-feed-icon {
+        font-size: 16px;
+      }
+
+      .activity-feed-description {
+        font-size: 12px;
+      }
+
+      .activity-feed-time {
+        font-size: 10px;
+      }
+    }
+
     /* Legacy support */
     .status-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
     .status-activity-top {
@@ -3728,14 +3866,18 @@
                   <span>No active tasks</span>
                 </div>
               </div>
-              <div class="status-stats-right">
-                <div class="mini-stat">
-                  <div class="mini-stat-value" id="statToday">0</div>
-                  <div class="mini-stat-label">Today</div>
-                </div>
-                <div class="mini-stat">
-                  <div class="mini-stat-value" id="statTotal">0</div>
-                  <div class="mini-stat-label">Total</div>
+            </div>
+
+            <!-- Main Agent Activity Feed -->
+            <div class="main-agent-activity-feed" id="mainAgentActivityFeed">
+              <div class="activity-feed-header">
+                <div class="activity-feed-title">📋 Recent Activity</div>
+                <div class="activity-feed-refresh">↻</div>
+              </div>
+              <div class="activity-feed-list" id="activityFeedList">
+                <div class="activity-feed-empty">
+                  <div class="activity-feed-empty-icon">😴</div>
+                  <div>No recent activity</div>
                 </div>
               </div>
             </div>
@@ -4342,11 +4484,13 @@
       renderCalendar();
       loadData();
       loadSubagents();
-      // Poll for status updates every 10 seconds
+      loadMainAgentActivity();
+      // Poll for status updates every 5 seconds (faster for real-time visibility)
       setInterval(() => {
         loadData();
         loadSubagents();
-      }, 10000);
+        loadMainAgentActivity();
+      }, 5000);
       startChangeDetection();
     }
 
@@ -4355,7 +4499,7 @@
       const btn = this;
       btn.classList.add('loading');
       try {
-        await Promise.all([loadData(), loadSubagents()]);
+        await Promise.all([loadData(), loadSubagents(), loadMainAgentActivity()]);
       } catch (e) {
         console.error('Refresh failed:', e);
       } finally {
@@ -4568,11 +4712,63 @@
     }
 
     function updateStats(stats) {
-      const todayCount = stats.hourly.slice(-24).reduce((sum, h) => sum + h.count, 0);
       const todayMin = stats.hourly.slice(-24).reduce((sum, h) => sum + h.activeMinutes, 0);
-      document.getElementById('statToday').textContent = todayCount;
       document.getElementById('statHours').textContent = (todayMin / 60).toFixed(1) + 'h';
-      document.getElementById('statTotal').textContent = stats.total.activities;
+    }
+
+    // Load and render main agent activity feed
+    async function loadMainAgentActivity() {
+      try {
+        const res = await fetch('/api/main-agent-activity?limit=10', { credentials: 'same-origin' });
+        if (!res.ok) return;
+        const data = await res.json();
+        renderActivityFeed(data);
+      } catch (e) {
+        console.error('Failed to load main agent activity:', e);
+      }
+    }
+
+    // Render activity feed
+    function renderActivityFeed(data) {
+      const list = document.getElementById('activityFeedList');
+      
+      if (!data.activities || data.activities.length === 0) {
+        list.innerHTML = `
+          <div class="activity-feed-empty">
+            <div class="activity-feed-empty-icon">😴</div>
+            <div>No recent activity</div>
+          </div>
+        `;
+        return;
+      }
+
+      list.innerHTML = data.activities.map(activity => {
+        const typeClass = `type-${activity.type}`;
+        const timeAgo = formatTimeAgo(Date.now() - activity.timestamp);
+        
+        return `
+          <div class="activity-feed-item ${typeClass}">
+            <div class="activity-feed-icon">${activity.icon}</div>
+            <div class="activity-feed-content">
+              <div class="activity-feed-description">${esc(activity.description)}</div>
+              <div class="activity-feed-time">${timeAgo}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Format time ago (e.g., "2m ago", "1h ago")
+    function formatTimeAgo(ms) {
+      const seconds = Math.floor(ms / 1000);
+      const minutes = Math.floor(seconds / 60);
+      const hours = Math.floor(minutes / 60);
+      const days = Math.floor(hours / 24);
+      
+      if (days > 0) return `${days}d ago`;
+      if (hours > 0) return `${hours}h ago`;
+      if (minutes > 0) return `${minutes}m ago`;
+      return `${seconds}s ago`;
     }
 
     function updateCharts(stats) {
