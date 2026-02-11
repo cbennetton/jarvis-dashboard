@@ -6188,6 +6188,237 @@
 
     document.getElementById('refreshUsage').addEventListener('click', () => loadUsage());
 
+    // ==================== TASK USAGE ====================
+    let taskUsageData = null;
+    let taskCostChartInstance = null;
+
+    async function loadTaskUsage() {
+      try {
+        const res = await fetch(`/api/usage-by-task?days=${usagePeriodDays}`, { credentials: 'same-origin' });
+        taskUsageData = await res.json();
+        renderTaskUsage();
+      } catch (e) {
+        console.error('Failed to load task usage:', e);
+        document.getElementById('taskUsageGrid').innerHTML = 
+          '<div class="empty-state"><div class="empty-state-icon">❌</div><p>Failed to load task data</p></div>';
+      }
+    }
+
+    function renderTaskUsage() {
+      if (!taskUsageData || !taskUsageData.tasks) return;
+
+      // Render chart
+      renderTaskCostChart();
+      
+      // Render cards grid
+      renderTaskCards();
+      
+      // Render table
+      renderTaskTable();
+    }
+
+    function initTaskCostChart() {
+      const ctx = document.getElementById('taskCostChart');
+      if (!ctx) return;
+
+      const isMobile = window.innerWidth < 768;
+
+      taskCostChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: { labels: [], datasets: [] },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          indexAxis: 'y',
+          scales: {
+            x: {
+              beginAtZero: true,
+              grid: {
+                color: 'rgba(255,255,255,0.06)',
+                drawBorder: false
+              },
+              ticks: {
+                color: 'rgba(255,255,255,0.5)',
+                font: { size: isMobile ? 10 : 11 },
+                callback: function(value) {
+                  return '€' + value.toFixed(2);
+                }
+              }
+            },
+            y: {
+              grid: {
+                display: false
+              },
+              ticks: {
+                color: 'rgba(255,255,255,0.7)',
+                font: { size: isMobile ? 11 : 12 }
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              backgroundColor: 'rgba(18, 18, 26, 0.95)',
+              titleColor: '#fff',
+              bodyColor: 'rgba(255,255,255,0.8)',
+              borderColor: 'rgba(255,255,255,0.1)',
+              borderWidth: 1,
+              cornerRadius: 8,
+              padding: 12,
+              callbacks: {
+                label: function(context) {
+                  const task = taskUsageData.tasks[context.dataIndex];
+                  return [
+                    `Cost: €${task.costEur.toFixed(2)}`,
+                    `Runs: ${task.runs}`,
+                    `Tokens: ${formatTokens(task.tokens)}`
+                  ];
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function renderTaskCostChart() {
+      if (!taskCostChartInstance) {
+        initTaskCostChart();
+      }
+      if (!taskCostChartInstance || !taskUsageData) return;
+
+      // Sort by cost descending
+      const sortedTasks = [...taskUsageData.tasks].sort((a, b) => b.costEur - a.costEur);
+      
+      // Take top 10 for readability
+      const topTasks = sortedTasks.slice(0, 10);
+
+      const labels = topTasks.map(t => `${t.emoji} ${t.name}`);
+      const data = topTasks.map(t => t.costEur);
+      const colors = topTasks.map(t => t.color);
+
+      taskCostChartInstance.data.labels = labels;
+      taskCostChartInstance.data.datasets = [{
+        data: data,
+        backgroundColor: colors,
+        borderColor: colors.map(c => c + '80'),
+        borderWidth: 1,
+        borderRadius: 6
+      }];
+      
+      taskCostChartInstance.update('none');
+    }
+
+    function renderTaskCards() {
+      const grid = document.getElementById('taskUsageGrid');
+      const tasks = [...taskUsageData.tasks].sort((a, b) => b.costEur - a.costEur);
+
+      if (!tasks.length) {
+        grid.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">🎯</div>
+            <p>No task data for this period</p>
+          </div>`;
+        return;
+      }
+
+      grid.innerHTML = tasks.map(task => {
+        const modelEntries = Object.entries(task.models || {});
+        const topModels = modelEntries.sort((a, b) => b[1].tokens - a[1].tokens).slice(0, 3);
+
+        return `
+          <div class="task-usage-card" data-task="${esc(task.id)}" onclick="toggleTaskCard(this)" style="border-left: 3px solid ${task.color}">
+            <div class="task-usage-card-header">
+              <div class="task-usage-icon" style="background: ${task.color}20">${task.emoji}</div>
+              <div class="task-usage-info">
+                <div class="task-usage-name">${esc(task.name)}</div>
+                <div class="task-usage-meta">${task.runs} runs • ${task.calls} API calls</div>
+              </div>
+            </div>
+            <div class="task-usage-stats">
+              <div class="task-usage-stat">
+                <div class="task-usage-stat-value">€${task.costEur.toFixed(2)}</div>
+                <div class="task-usage-stat-label">Cost</div>
+              </div>
+              <div class="task-usage-stat">
+                <div class="task-usage-stat-value">${formatTokensShort(task.tokens)}</div>
+                <div class="task-usage-stat-label">Tokens</div>
+              </div>
+            </div>
+            <div class="task-usage-progress">
+              <div class="task-usage-progress-fill" style="width: ${task.costPercentage.toFixed(1)}%; background: ${task.color}"></div>
+            </div>
+            <div class="task-usage-percentage">${task.costPercentage.toFixed(1)}% of total cost</div>
+            <div class="task-usage-expand-hint">Click to see model breakdown</div>
+            <div class="task-usage-details">
+              <div class="task-usage-models-breakdown">
+                ${topModels.map(([modelName, modelData]) => `
+                  <div class="task-usage-model-row">
+                    <div class="task-usage-model-emoji">🤖</div>
+                    <div class="task-usage-model-name">${esc(modelName)}</div>
+                    <div class="task-usage-model-tokens">${formatTokensShort(modelData.tokens)}</div>
+                    <div class="task-usage-model-cost">€${(modelData.cost * 0.92).toFixed(2)}</div>
+                  </div>
+                `).join('')}
+                ${modelEntries.length > 3 ? `<div style="text-align: center; color: var(--text-muted); font-size: 12px; margin-top: 8px;">+${modelEntries.length - 3} more models</div>` : ''}
+              </div>
+              <button class="usage-model-collapse-btn" onclick="event.stopPropagation(); collapseTaskCard(this.closest('.task-usage-card'))">▲ Collapse</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function toggleTaskCard(card) {
+      if (card.classList.contains('expanded')) return;
+      card.classList.add('expanded');
+    }
+
+    function collapseTaskCard(card) {
+      card.classList.remove('expanded');
+    }
+
+    function renderTaskTable() {
+      const tbody = document.getElementById('taskTableBody');
+      const tasks = [...taskUsageData.tasks].sort((a, b) => b.costEur - a.costEur);
+
+      if (!tasks.length) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No data</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = tasks.map(task => `
+        <tr>
+          <td>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="font-size: 20px;">${task.emoji}</span>
+              <span>${esc(task.name)}</span>
+            </div>
+          </td>
+          <td>${task.runs}</td>
+          <td>${formatTokens(task.tokens)}</td>
+          <td style="font-weight: 600; color: ${task.color}">€${task.costEur.toFixed(2)}</td>
+          <td>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <div style="flex: 1; background: var(--bg-secondary); border-radius: 4px; height: 6px; overflow: hidden;">
+                <div style="width: ${task.costPercentage.toFixed(1)}%; height: 100%; background: ${task.color}; border-radius: 4px;"></div>
+              </div>
+              <span style="font-size: 12px; color: var(--text-muted); min-width: 45px;">${task.costPercentage.toFixed(1)}%</span>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // Modified loadUsage to also load task usage
+    const originalLoadUsage = loadUsage;
+    loadUsage = async function() {
+      await originalLoadUsage();
+      await loadTaskUsage();
+    };
+
     // ==================== UTILITIES ====================
     function esc(t) {
       const d = document.createElement('div');
