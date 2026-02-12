@@ -7020,11 +7020,32 @@
         return;
       }
 
+      // Calculate totals for percentage calculations
+      const totalTokens = tasks.reduce((sum, t) => sum + t.tokens, 0);
+      const totalCost = tasks.reduce((sum, t) => sum + t.costEur, 0);
+
       grid.innerHTML = tasks.map(task => {
         const modelEntries = Object.entries(task.models || {});
         const sortedModels = modelEntries.sort((a, b) => b[1].tokens - a[1].tokens);
         const topModels = sortedModels.slice(0, 5);
         const totalModelTokens = modelEntries.reduce((sum, [, data]) => sum + data.tokens, 0);
+        const totalModelCost = modelEntries.reduce((sum, [, data]) => sum + data.costEur, 0);
+
+        // Determine primary and secondary values based on taskViewMode
+        let primaryValue, primaryLabel, secondaryValue, secondaryLabel, percentage;
+        if (taskViewMode === 'cost') {
+          primaryValue = `€${task.costEur.toFixed(2)}`;
+          primaryLabel = 'Cost';
+          secondaryValue = formatTokensShort(task.tokens);
+          secondaryLabel = 'Tokens';
+          percentage = totalCost > 0 ? (task.costEur / totalCost * 100) : 0;
+        } else {
+          primaryValue = formatTokensShort(task.tokens);
+          primaryLabel = 'Tokens';
+          secondaryValue = `€${task.costEur.toFixed(2)}`;
+          secondaryLabel = 'Cost';
+          percentage = totalTokens > 0 ? (task.tokens / totalTokens * 100) : 0;
+        }
 
         return `
           <div class="task-usage-card" data-task="${esc(task.id)}" onclick="toggleTaskCard(this)" style="border-left: 3px solid ${task.color}">
@@ -7037,29 +7058,38 @@
             </div>
             <div class="task-usage-stats">
               <div class="task-usage-stat">
-                <div class="task-usage-stat-value">€${task.costEur.toFixed(2)}</div>
-                <div class="task-usage-stat-label">Cost</div>
+                <div class="task-usage-stat-value">${primaryValue}</div>
+                <div class="task-usage-stat-label">${primaryLabel}</div>
               </div>
               <div class="task-usage-stat">
-                <div class="task-usage-stat-value">${formatTokensShort(task.tokens)}</div>
-                <div class="task-usage-stat-label">Tokens</div>
+                <div class="task-usage-stat-value" style="font-size: 16px; color: var(--text-secondary);">${secondaryValue}</div>
+                <div class="task-usage-stat-label">${secondaryLabel}</div>
               </div>
             </div>
             <div class="task-usage-progress">
-              <div class="task-usage-progress-fill" style="width: ${task.costPercentage.toFixed(1)}%; background: ${task.color}"></div>
+              <div class="task-usage-progress-fill" style="width: ${percentage.toFixed(1)}%; background: ${task.color}"></div>
             </div>
-            <div class="task-usage-percentage">${task.costPercentage.toFixed(1)}% of total cost</div>
+            <div class="task-usage-percentage">${percentage.toFixed(1)}% of total ${taskViewMode === 'cost' ? 'cost' : 'tokens'}</div>
             <div class="task-usage-expand-hint">Click to see model breakdown</div>
             <div class="task-usage-details">
               <div class="task-usage-models-breakdown">
                 ${topModels.map(([modelId, modelData]) => {
-                  const percentage = totalModelTokens > 0 ? (modelData.tokens / totalModelTokens * 100).toFixed(0) : 0;
+                  const modelPercentage = taskViewMode === 'cost' 
+                    ? (totalModelCost > 0 ? (modelData.costEur / totalModelCost * 100).toFixed(0) : 0)
+                    : (totalModelTokens > 0 ? (modelData.tokens / totalModelTokens * 100).toFixed(0) : 0);
+                  const modelPrimaryValue = taskViewMode === 'cost' 
+                    ? `€${modelData.costEur.toFixed(2)}`
+                    : formatTokensShort(modelData.tokens);
+                  const modelSecondaryValue = taskViewMode === 'cost'
+                    ? formatTokensShort(modelData.tokens)
+                    : `€${modelData.costEur.toFixed(2)}`;
+                  
                   return `
                     <div class="task-usage-model-row">
                       <div class="task-usage-model-emoji">${modelData.emoji || '🤖'}</div>
                       <div class="task-usage-model-name">${esc(modelData.displayName || modelId)}</div>
-                      <div class="task-usage-model-tokens">${formatTokensShort(modelData.tokens)} <span style="color: var(--text-muted); font-size: 11px;">(${percentage}%)</span></div>
-                      <div class="task-usage-model-cost">€${modelData.costEur.toFixed(2)}</div>
+                      <div class="task-usage-model-tokens">${modelPrimaryValue} <span style="color: var(--text-muted); font-size: 11px;">(${modelPercentage}%)</span></div>
+                      <div class="task-usage-model-cost" style="color: var(--text-muted); font-size: 12px;">${modelSecondaryValue}</div>
                     </div>
                   `;
                 }).join('')}
