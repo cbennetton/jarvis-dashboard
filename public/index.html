@@ -7118,6 +7118,7 @@
         btn.classList.add('active');
         taskViewMode = btn.dataset.view;
         renderTaskTimelineChart(); // Re-render chart with new view mode
+        renderTaskCards(); // Also re-render task cards with new view mode
       });
     });
 
